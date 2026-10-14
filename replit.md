@@ -1,6 +1,6 @@
-# [Project name]
+# Lance do Pix
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Leilão online demonstrativo em que o último lance antes do fim do cronômetro vence.
 
 ## Run & Operate
 
@@ -22,15 +22,21 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Web app: `artifacts/lance-do-pix`
+- API routes: `artifacts/api-server/src/routes`
+- API contract: `lib/api-spec/openapi.yaml`
+- Database schema: `lib/db/src/schema`
+- Generated client and validation: `lib/api-client-react` and `lib/api-zod`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The shared demonstration auction, bid history, countdown, and bonus are authoritative in PostgreSQL and served by the API.
+- Money values in the auction API and database are integer centavos; the bonus is calculated per completed 60-second period and is shown only when positive.
+- This is not a real-money service: account, credits, top-ups, and withdrawals remain local simulations. The shared reset affects every demo session and requires confirmation in the UI.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Mobile-first Brazilian Portuguese auction demo with a R$ 1.000,00 prize, a 60-second bid timer, bid history, simulated credits, and Pix-style prize claim flow.
 
 ## User preferences
 
@@ -38,7 +44,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The Vite build config requires both `PORT` and `BASE_PATH`; use the artifact preview path for `BASE_PATH`.
+- Regenerate API client and Zod schemas after changing `lib/api-spec/openapi.yaml`.
 
 ## Pointers
 

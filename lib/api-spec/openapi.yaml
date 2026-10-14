@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auction
+    description: Demonstration auction operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,60 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auctions/demo/current:
+    get:
+      operationId: getDemoAuction
+      tags: [auction]
+      summary: Get the current demonstration auction
+      responses:
+        "200":
+          description: Current demonstration auction state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoAuction"
+  /auctions/demo/bids:
+    post:
+      operationId: placeDemoAuctionBid
+      tags: [auction]
+      summary: Place a bid in the demonstration auction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoAuctionBidInput"
+      responses:
+        "201":
+          description: The bid was accepted and the timer was reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoAuction"
+        "400":
+          description: Invalid bid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoAuctionError"
+        "409":
+          description: Auction closed or bid below the minimum
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoAuctionError"
+  /auctions/demo/reset:
+    post:
+      operationId: resetDemoAuction
+      tags: [auction]
+      summary: Reset the shared demonstration auction
+      responses:
+        "200":
+          description: Reset demonstration auction state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoAuction"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +89,71 @@ components:
           type: string
       required:
         - status
+    DemoAuctionBid:
+      type: object
+      properties:
+        id:
+          type: integer
+        bidderId:
+          type: string
+        bidderName:
+          type: string
+        amountCents:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, bidderId, bidderName, amountCents, createdAt]
+    DemoAuction:
+      type: object
+      properties:
+        id:
+          type: string
+        prizeCents:
+          type: integer
+        currentBidCents:
+          type: integer
+        bonusCents:
+          type: integer
+        remainingSeconds:
+          type: integer
+        status:
+          type: string
+          enum: [live, urgent, closed]
+        lastBidderId:
+          type: [string, "null"]
+        bids:
+          type: array
+          items:
+            $ref: "#/components/schemas/DemoAuctionBid"
+      required:
+        - id
+        - prizeCents
+        - currentBidCents
+        - bonusCents
+        - remainingSeconds
+        - status
+        - lastBidderId
+        - bids
+    DemoAuctionBidInput:
+      type: object
+      properties:
+        bidderId:
+          type: string
+          minLength: 8
+          maxLength: 128
+        bidderName:
+          type: string
+          minLength: 1
+          maxLength: 40
+        amountCents:
+          type: integer
+          minimum: 1
+      required: [bidderId, bidderName, amountCents]
+    DemoAuctionError:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
 
