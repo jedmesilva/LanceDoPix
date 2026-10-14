@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Lance do Pix"
+description = "Leilão ao vivo mobile-first em que o último lance leva o prêmio. Explore a disputa, ajuste e registre lances de demonstração, acompanhe créditos e resgate simulado por Pix."
+version = "1.0.0"
+id = "artifacts/lance-do-pix"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20364
+
+[services.development]
+run = "pnpm --filter @workspace/lance-do-pix run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lance-do-pix", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/lance-do-pix/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20364"
+BASE_PATH = "/"

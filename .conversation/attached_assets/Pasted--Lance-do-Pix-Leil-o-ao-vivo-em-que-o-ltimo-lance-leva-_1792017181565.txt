@@ -1,0 +1,226 @@
+# Lance do Pix
+
+> Leilão ao vivo em que **o último lance leva o prêmio**, com entrada e saída de dinheiro por **Pix**. Cada lance reinicia o cronômetro. Quando o tempo zera, quem deu o último lance ganha.
+
+| | |
+|---|---|
+| **Versão do documento** | 0.1 (outubro de 2026) |
+| **Protótipo** | https://claude.ai/artifact/F2qGECopHLDFJ24dArV8Ar |
+
+Este documento descreve a ideia do projeto: o que é, para que existe, como funciona e como a experiência foi pensada.
+
+---
+
+## 1. O que é
+
+O Lance do Pix é um produto mobile-first de leilão em tempo real.
+
+- Existe um **prêmio em dinheiro em disputa** (no protótipo, R$ 1.000,00).
+- Existe um **cronômetro curto** (60 segundos no protótipo).
+- Os participantes dão **lances cada vez maiores**.
+- **Cada lance reinicia o cronômetro.**
+- Quando o tempo chega a zero, o leilão encerra e **quem deu o último lance leva o prêmio**, mais o bônus quando houver.
+
+A participação é paga com **créditos**, comprados por Pix. O prêmio é recebido por **Pix**, para a chave do ganhador.
+
+Em uma frase: *"quem der o último lance leva o prêmio"*.
+
+---
+
+## 2. Propósito e princípios
+
+**Propósito.** Entregar uma disputa simples de entender, rápida e tensa, em que a pessoa sempre sabe quatro coisas:
+
+1. o que está em jogo;
+2. quanto tempo falta;
+3. quanto precisa dar de lance;
+4. o que acontece se ganhar.
+
+**Princípios que guiaram as decisões de produto e de interface:**
+
+1. **O prêmio é o protagonista.** A pessoa dá lance para ganhar o prêmio, não para "ganhar tempo". O cronômetro é importante, mas secundário.
+2. **Uma ação principal por tela.** Na tela do leilão, a ação é dar lance.
+3. **Clareza antes de enfeite.** Pouca poluição visual, poucos tamanhos de texto, um único elemento pesado por vez.
+4. **Pix de ponta a ponta.** Recarga e resgate acontecem por Pix, o meio de pagamento que o público já conhece.
+5. **Transparência no dinheiro.** Saldo sempre visível, extrato de movimentações e status claro do resgate.
+6. **Dinâmica protegida.** O bônus não é explicado na interface e só aparece quando existe (ver seção 4).
+
+---
+
+## 3. Jornada do usuário
+
+1. **Abrir o leilão.** A pessoa vê o prêmio, o tempo restante e o lance atual. Sem login, ela pode acompanhar, mas não dar lance.
+2. **Entrar.** Login por e-mail (no protótipo, simulado).
+3. **Adicionar créditos.** Escolhe R$ 50, R$ 100, R$ 200 ou R$ 500, gera o Pix (QR Code ou copia e cola) e paga no app do banco. Os créditos entram quando o Pix é confirmado.
+4. **Dar lance.** O valor sugerido já é o mínimo. A pessoa pode aumentar com − e +, usar os atalhos (+50, +100, +200) ou digitar. O lance é feito com um toque.
+5. **Acompanhar.** Cronômetro, lista dos últimos lances (o lance da própria pessoa aparece marcado) e saldo no cabeçalho.
+6. **Reta final.** Nos últimos 10 segundos, o tempo e a barra de progresso ficam vermelhos.
+7. **Encerramento.** Se o último lance foi da pessoa, abre a tela **"Você ganhou!"**. Se não, o leilão aparece como encerrado.
+8. **Resgatar.** A pessoa confirma (ou altera) a chave Pix e acompanha o status até o pagamento.
+
+---
+
+## 4. Regras do leilão
+
+### 4.1 Parâmetros do protótipo
+
+Todos ficam em um bloco de configuração no início do código e podem ser alterados.
+
+| Parâmetro | Valor no protótipo | Observação |
+|---|---|---|
+| Prêmio | R$ 1.000,00 | Fixo por leilão |
+| Duração do cronômetro | 60 s | Reinicia a cada lance |
+| Incremento mínimo | R$ 10,00 | Sobre o lance atual |
+| Lance inicial | R$ 100,00 | De outro participante, apenas para demonstração |
+| Bônus | 10% do valor dos lances do período | Apurado a cada 60 s no protótipo |
+| Janela de "últimos segundos" | 10 s | Muda o visual para vermelho |
+| Pacotes de recarga | R$ 50, 100, 200 e 500 | |
+| Atalhos de lance | +50, +100, +200 | Somam ao valor já escolhido |
+
+### 4.2 Regras como o usuário vê ("Como funciona")
+
+- Cada lance reinicia o cronômetro para 1 minuto.
+- Cada lance precisa superar o lance atual em pelo menos R$ 10,00.
+- Quando o tempo chega a zero, o leilão encerra e quem deu o último lance leva o prêmio, mais o bônus quando houver.
+
+### 4.3 Bônus
+
+- A cada período, uma porcentagem do valor dos lances feitos nele vira bônus e é somada ao prêmio.
+- O bônus **só aparece na tela quando é maior que zero** ("+ R$ 50,00 de bônus"). Ver "+ R$ 0,00" passava a sensação de perda.
+- A **porcentagem e a mecânica não são explicadas** nas regras exibidas. Decisão de produto: nem sempre haverá bônus, e explicitar a mecânica criaria expectativa e poderia quebrar a dinâmica do sistema.
+- O texto das regras diz apenas que o vencedor leva "o prêmio, mais o bônus quando houver".
+
+### 4.4 Estados do leilão
+
+| Estado | Quando | O que muda na tela |
+|---|---|---|
+| **Ao vivo** | Tempo restante acima de 10 s | Visual normal, ponto pulsante ao lado de "para encerrar" |
+| **Últimos segundos** | 10 s ou menos | Tempo e barra ficam vermelhos |
+| **Encerrado** | Tempo zerado | Campo de lance desabilitado; lista mostra o "Lance vencedor"; se a pessoa ganhou, o botão principal vira "Receber prêmio via Pix" |
+
+---
+
+## 5. Créditos e conta
+
+### 5.1 Por que créditos (e não um Pix por lance)
+
+Como o cronômetro reinicia a cada lance, pagar um Pix para cada lance não funciona bem:
+
+- **Tempo.** Abrir o app do banco, pagar e esperar a confirmação costuma levar mais que os segundos finais. A pessoa pagaria e poderia perder o lance.
+- **Disputa simultânea.** Dois usuários poderiam pagar pelo mesmo valor ao mesmo tempo, e seria preciso aceitar um e devolver o Pix do outro. Com saldo, só um lance vale e o outro simplesmente não é feito, sem ninguém pagar à toa.
+- **Atrito.** Uma recarga mantém o "Dar lance" a um toque, sem passar pelo banco a cada lance.
+
+### 5.2 Como funciona no protótipo
+
+- Cada lance **debita o valor do lance** do saldo de créditos.
+- Sem saldo suficiente: o aviso diz "Saldo insuficiente. Faltam R$ X", e o botão principal vira **"Adicionar créditos"**. A recarga abre já com o menor pacote que cobre a diferença.
+- Sem login: o botão principal vira **"Entrar para dar lance"**.
+- A recarga é uma folha deslizante com três passos: escolher o valor, pagar o Pix e confirmação. A folha mostra o tempo restante do leilão, porque ele continua correndo.
+
+### 5.3 Onde o saldo e a conta aparecem
+
+| Local | O que mostra |
+|---|---|
+| **Cabeçalho** | Chip com o saldo e um "+" (toca para adicionar créditos) e o avatar (toca para abrir a conta). Sem login, aparece o botão "Entrar". |
+| **Painel de lance** | Avisos de saldo insuficiente e de necessidade de login |
+| **Folha da conta** | Saldo com botão "Adicionar", "Meus leilões", "Movimentações" e "Sair da conta" |
+| **Avatar** | Um ponto verde indica que há prêmio disponível para resgate |
+
+Escolha de design: **avatar** em vez de menu hambúrguer, porque há um único destino de conta e o saldo já fica visível no chip.
+
+---
+
+## 6. Vitória e resgate do prêmio
+
+### 6.1 Tela "Você ganhou!"
+
+Quando o tempo zera e o último lance foi da pessoa, uma folha abre sozinha cerca de 1 segundo depois:
+
+- troféu e o título "Você ganhou!";
+- resumo: prêmio, bônus (só se houver) e total;
+- botões **"Receber via Pix"** e **"Agora não"**.
+
+Se a pessoa fechar a folha, o painel de lance passa a mostrar o botão **"Receber prêmio via Pix"**, e o leilão aparece em "Meus leilões" com o botão **"Resgatar"**.
+
+### 6.2 O prêmio é resgatado por Pix, não entra como crédito
+
+Decisão: o prêmio é um valor **separado dos créditos** e é pago por Pix **a pedido do ganhador** ("resgate com um toque").
+
+- **Não automático:** o resgate dá à pessoa a chance de conferir a chave Pix antes de receber.
+- **Não como crédito:** o produto se chama "Lance do Pix", então a pessoa espera receber Pix. Converter o prêmio em crédito parece isca e incentiva gastar em novos lances.
+- Se desejado no futuro, "usar como créditos" pode existir como segunda opção, nunca como padrão.
+
+### 6.3 Resgate por leilão ganho
+
+Cada leilão ganho tem o seu próprio botão de resgate, em "Meus leilões". Em vez de um total único de prêmios, isso mantém cada prêmio ligado ao leilão de origem, o que ajuda em status, comprovante e tributação, e evita ambiguidade quando houver várias vitórias.
+
+| Situação do leilão | O que aparece na linha |
+|---|---|
+| Em andamento | Etiqueta "Em andamento" |
+| Não ganhou | Etiqueta "Não ganhou" |
+| Ganhou, ainda não resgatado | Botão **"Resgatar"** |
+| Ganhou, em análise | Botão-etiqueta "Em análise" (abre o status) |
+| Ganhou, pago | Botão-etiqueta "Pago" (abre o status) |
+
+### 6.4 Chave Pix do resgate
+
+- Por padrão, o prêmio vai para a **chave Pix do CPF da conta**, exibida mascarada.
+- A pessoa pode **alterar a chave** no momento do resgate: tipos **CPF, Celular, E-mail e Aleatória**.
+- O formato é validado antes de habilitar "Salvar chave".
+- Depois de salva, a chave aparece mascarada, e o status do resgate informa para qual chave o Pix foi enviado.
+- A tela avisa que **a chave precisa estar no nome da pessoa**.
+
+### 6.5 Status do resgate
+
+**Solicitado → Em análise → Pago.** Uma linha do tempo mostra em que etapa o resgate está.
+
+---
+
+## 7. Linguagem
+
+| Use | Onde | Observação |
+|---|---|---|
+| **Leilão** | Nome da experiência | Palavra central do produto |
+| **Lance**, **lance atual** | Interface | |
+| **Lance vencedor** | Lista de lances ao encerrar | Substitui "lance final" |
+| **Você ganhou!** | Tela de vitória | Todo mundo entende |
+| **Meus leilões** | Conta | Etiquetas: Em andamento, Ganhou, Não ganhou |
+| **Créditos** | Saldo para dar lances | Distinto do prêmio |
+| **Resgatar** | Ação sobre um prêmio ganho | |
+| **Arrematante**, **arremate** | Textos formais e comprovantes | Formal demais para a interface |
+
+Evitar: **"vitória"**, **"aposta"**, **"jogar"**. Soam a jogo de azar e vão contra a imagem de leilão. Evitar também "lances ganhos": a pessoa dá vários lances, mas ganha o leilão (o prêmio) uma vez.
+
+---
+
+## 8. Interface
+
+### 8.1 Estrutura da tela principal (mobile)
+
+1. **Cabeçalho:** marca, saldo com "+" e avatar. Ao rolar a página, o nome da marca dá lugar ao tempo restante.
+2. **Destaque:** título "Prêmio em disputa", descrição "O último lance leva" e o **valor do prêmio em tamanho grande**. O bônus aparece logo abaixo, só quando existe.
+3. **Cronômetro:** texto simples com o rótulo "para encerrar" e uma barra fina de progresso. É secundário ao prêmio.
+4. **Lances:** o lance atual em destaque e os anteriores em linhas simples.
+5. **"Como funciona":** regras recolhidas.
+6. **Painel de lance (fixo embaixo):** campo com − e +, atalhos de soma, uma linha de aviso e o botão principal.
+
+No desktop, o conteúdo fica à esquerda e o painel de lance em uma coluna fixa à direita.
+
+### 8.2 Decisões de design
+
+| Decisão | Motivo |
+|---|---|
+| Prêmio como maior elemento da tela | Feedback de teste: a interface passava a sensação de dar lance "para ganhar tempo" |
+| Cronômetro menor, sem caixa | A versão em cápsula cinza não agradou; texto simples com barra fina ficou mais limpo |
+| Frase "Cada lance reinicia o tempo" fora da tela principal | Reduzir densidade; a regra continua em "Como funciona" |
+| Bônus escondido quando zero | "R$ 0 de bônus" passa sensação de perda |
+| Painel de lance com campo único | Substitui 6 botões de valor e um campo "outro valor", mais fácil de entender |
+| Folhas deslizantes para conta, recarga, login e resgate | Mantêm o contexto do leilão atrás e funcionam bem no celular |
+| Ícones Lucide embutidos como SVG | Nitidez e consistência, sem dependência externa |
+| Tema claro e escuro | Segue a preferência do aparelho |
+
+### 8.3 Acessibilidade
+
+- Cronômetro com papel de `timer`; avisos por voz aos 30 e 10 segundos e no encerramento.
+- Campos e botões com rótulos; foco visível; áreas de toque amplas.
+- Animações reduzidas quando o aparelho pede.
