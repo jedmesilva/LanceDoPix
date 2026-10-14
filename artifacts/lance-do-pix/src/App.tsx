@@ -186,7 +186,7 @@ function Home() {
           <section aria-labelledby="auction-title">
             <h1 className="hero-kicker" id="auction-title">Prêmio em disputa</h1>
             <p className="lead">O último lance leva</p>
-            <p className="prize" data-testid="value-prize"><small>R$</small><span>1.000</span></p>
+            <p className="prize" data-testid="value-prize"><small>R$</small><span>1.000,00</span></p>
             {demo.wonAuction && demo.wonAuction.bonus > 0 && <p className="bonus" data-testid="value-bonus">+ {money(demo.wonAuction.bonus)} de bônus</p>}
             <div className="timer-row" role="timer" aria-label={`Tempo restante: ${timeLabel(demo.remaining)}`} data-testid="status-countdown">
               <span className="timer" aria-hidden="true">{timeLabel(demo.remaining)}</span>
