@@ -19,15 +19,15 @@ router.get("/auctions/demo/current", async (req, res): Promise<void> => {
     const auction = await getDemoAuction();
     res.json(GetDemoAuctionResponse.parse(auction));
   } catch (error) {
-    req.log.error({ err: error }, "Failed to load demonstration auction");
-    res.status(500).json({ error: "Não foi possível carregar o leilão de demonstração." });
+    req.log.error({ err: error }, "Failed to load auction");
+    res.status(500).json({ error: "Não foi possível carregar o leilão." });
   }
 });
 
 router.post("/auctions/demo/bids", async (req, res): Promise<void> => {
   const parsed = PlaceDemoAuctionBidBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: "Informe um lance válido para a demonstração." });
+    res.status(400).json({ error: "Informe um lance válido." });
     return;
   }
 
@@ -39,8 +39,8 @@ router.post("/auctions/demo/bids", async (req, res): Promise<void> => {
       res.status(409).json({ error: error.message });
       return;
     }
-    req.log.error({ err: error }, "Failed to place demonstration bid");
-    res.status(500).json({ error: "Não foi possível registrar o lance de demonstração." });
+    req.log.error({ err: error }, "Failed to place auction bid");
+    res.status(500).json({ error: "Não foi possível registrar o lance." });
   }
 });
 
@@ -49,8 +49,8 @@ router.post("/auctions/demo/reset", async (req, res): Promise<void> => {
     const auction = await resetDemoAuction();
     res.json(ResetDemoAuctionResponse.parse(auction));
   } catch (error) {
-    req.log.error({ err: error }, "Failed to reset demonstration auction");
-    res.status(500).json({ error: "Não foi possível reiniciar o leilão de demonstração." });
+    req.log.error({ err: error }, "Failed to reset auction");
+    res.status(500).json({ error: "Não foi possível reiniciar o leilão." });
   }
 });
 

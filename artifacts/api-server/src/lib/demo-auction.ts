@@ -247,7 +247,7 @@ export async function placeDemoAuctionBid(input: {
     auction = await applyElapsedTime(client, auction, now);
 
     if (auction.status === "closed") {
-      throw new AuctionConflictError("Este leilão de demonstração já foi encerrado.");
+      throw new AuctionConflictError("Este leilão já foi encerrado.");
     }
     const minimumBidCents = auction.current_bid_cents + MIN_INCREMENT_CENTS;
     if (input.amountCents < minimumBidCents) {

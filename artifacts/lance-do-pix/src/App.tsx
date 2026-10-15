@@ -166,7 +166,7 @@ function Home() {
   }
   function placeBid() {
     if (!demo.signedIn) { setSheet('signin'); return; }
-    if (!auction) { setNotice('Conectando ao leilão de demonstração. Tente novamente em instantes.'); return; }
+    if (!auction) { setNotice('Conectando ao leilão. Tente novamente em instantes.'); return; }
     if (!amountValid) { setNotice(`O lance mínimo é ${money(minBid)}.`); return; }
     if (amount > demo.credits) {
       const gap = amount - demo.credits;
@@ -187,10 +187,10 @@ function Home() {
         setDemo((current) => ({
           ...current,
           credits: Math.round((current.credits - amount) * 100) / 100,
-          transactions: [{ label: 'Lance no leilão · demonstração', amount: -amount, timestamp }, ...current.transactions],
+          transactions: [{ label: 'Lance no leilão', amount: -amount, timestamp }, ...current.transactions],
         }));
         setBidInput(((updatedAuction.currentBidCents + 1_000) / 100).toFixed(2).replace('.', ','));
-        setNotice('Lance de demonstração registrado. O cronômetro reiniciou.');
+        setNotice('Lance registrado. O cronômetro reiniciou.');
         setAnnouncement(`Lance de ${money(amount)} registrado. Restam 60 segundos.`);
       },
       onError: (error) => {
@@ -202,27 +202,27 @@ function Home() {
   function confirmTopup() {
     setDemo((current) => ({
       ...current, credits: current.credits + packageAmount,
-      transactions: [{ label: 'Créditos adicionados · demonstração', amount: packageAmount, timestamp: stamp() }, ...current.transactions],
+      transactions: [{ label: 'Créditos adicionados', amount: packageAmount, timestamp: stamp() }, ...current.transactions],
     }));
     setTopupStep(3);
-    setAnnouncement(`${money(packageAmount)} em créditos adicionados na demonstração.`);
+    setAnnouncement(`${money(packageAmount)} em créditos adicionados.`);
   }
   function signIn() {
     const email = emailInput.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setNotice('Informe um e-mail válido para continuar.'); return; }
     setDemo((current) => ({ ...current, signedIn: true, email }));
-    setSheet(null); setNotice('Conta de demonstração conectada.');
+    setSheet(null); setNotice('Conta conectada.');
   }
   function signOut() {
     setDemo((current) => ({ ...current, signedIn: false }));
-    setSheet(null); setNotice('Você saiu da conta de demonstração.');
+    setSheet(null); setNotice('Você saiu da conta.');
   }
   function startWithdrawal() {
     if (!demo.wonAuction) return;
     setDemo((current) => ({
       ...current, wonAuction: current.wonAuction ? { ...current.wonAuction, withdrawal: 'Solicitado', keyType: pixType, keyValue: maskedKey } : null,
     }));
-    setAnnouncement('Solicitação de resgate registrada na demonstração.');
+    setAnnouncement('Solicitação de resgate registrada.');
   }
   function advanceWithdrawal() {
     setDemo((current) => {
@@ -232,7 +232,7 @@ function Home() {
     });
   }
   function resetDemo() {
-    const confirmed = window.confirm('Isso reinicia o leilão de demonstração compartilhado para todas as sessões e zera esta conta demonstrativa. Continuar?');
+    const confirmed = window.confirm('Isso reinicia o leilão compartilhado para todas as sessões e zera esta conta. Continuar?');
     if (!confirmed) return;
     resetAuctionMutation.mutate(undefined, {
       onSuccess: (resetAuction) => {
@@ -240,11 +240,11 @@ function Home() {
         setDemo({ ...initialState, bidderId: createBidderId(), transactions: [] });
         setTheme('light');
         setBidInput(((resetAuction.currentBidCents + 1_000) / 100).toFixed(2).replace('.', ','));
-        setNotice('Demonstração compartilhada reiniciada.');
+        setNotice('Leilão reiniciado.');
         setSheet(null);
       },
       onError: (error) => {
-        setNotice(error instanceof Error ? error.message : 'Não foi possível reiniciar a demonstração.');
+        setNotice(error instanceof Error ? error.message : 'Não foi possível reiniciar o leilão.');
       },
     });
   }
@@ -255,9 +255,8 @@ function Home() {
         <div className="top-inner">
           <div className="brand" aria-label="Lance do Pix"><span className="brand-mark" aria-hidden="true" />Lance do Pix</div>
           <div className="head-actions">
-            <span className="demo-tag">Demonstração</span>
-            {demo.signedIn && <button className="balance-chip" data-testid="button-balance" onClick={() => openTopup()} aria-label={`Saldo de demonstração ${money(demo.credits)}. Adicionar créditos`}><span data-testid="value-credits">{money(demo.credits)}</span><span className="add"><Plus size={16} /></span></button>}
-            {demo.signedIn ? <button className={`avatar ${demo.wonAuction && demo.wonAuction.withdrawal === 'disponível' ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label="Minha conta de demonstração">{userName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</button> : <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={() => setSheet('signin')}><LogIn size={16} /> Entrar</button>}
+            {demo.signedIn && <button className="balance-chip" data-testid="button-balance" onClick={() => openTopup()} aria-label={`Saldo ${money(demo.credits)}. Adicionar créditos`}><span data-testid="value-credits">{money(demo.credits)}</span><span className="add"><Plus size={16} /></span></button>}
+            {demo.signedIn ? <button className={`avatar ${demo.wonAuction && demo.wonAuction.withdrawal === 'disponível' ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label="Minha conta">{userName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</button> : <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={() => setSheet('signin')}><LogIn size={16} /> Entrar</button>}
             <button className="close-btn" data-testid="button-theme" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
           </div>
         </div>
@@ -274,8 +273,7 @@ function Home() {
               <span className="timer-label">{status === 'closed' ? 'leilão encerrado' : status === 'urgent' ? 'últimos segundos' : 'para encerrar'}</span>
             </div>
             <div className="progress-track" aria-hidden="true"><div className="progress-fill" style={{ width: `${remaining / 60 * 100}%` }} /></div>
-            <p className="muted" style={{ marginTop: 11 }}>{status === 'closed' ? 'Este leilão de demonstração foi encerrado.' : 'Leilão de demonstração · lances e bônus atualizados pelo servidor'}</p>
-            {auctionQuery.isError && <p className="demo-warning" role="alert">Não foi possível atualizar o leilão agora. Tentando novamente…</p>}
+            {auctionQuery.isError && <p className="inline-error" role="alert">Não foi possível atualizar o leilão agora. Tentando novamente…</p>}
           </section>
           <section aria-labelledby="bids-title">
             <h2 id="bids-title" className="section-head">{status === 'closed' ? 'Lances · Lance vencedor' : 'Lance atual'}</h2>
@@ -288,7 +286,7 @@ function Home() {
           </section>
           <details className="rules">
             <summary data-testid="toggle-rules">Como funciona <ChevronDown size={19} /></summary>
-            <div className="rules-body"><p>Cada lance reinicia o cronômetro para 1 minuto.</p><p>Cada lance precisa superar o lance atual em pelo menos R$ 10,00.</p><p>Quando o tempo chega a zero, quem deu o último lance leva o prêmio, mais o bônus quando houver.</p><p>Se você ganhar, poderá solicitar o resgate separado dos créditos, para uma chave Pix em seu nome.</p><p><strong>Esta é uma demonstração.</strong> Os lances e bônus são processados pelo servidor; saldo, recargas e resgates são fictícios. Não há pagamento real nem aprovação legal.</p></div>
+            <div className="rules-body"><p>Cada lance reinicia o cronômetro para 1 minuto.</p><p>Cada lance precisa superar o lance atual em pelo menos R$ 10,00.</p><p>Quando o tempo chega a zero, quem deu o último lance leva o prêmio, mais o bônus quando houver.</p><p>Se você ganhar, poderá solicitar o resgate separado dos créditos, para uma chave Pix em seu nome.</p></div>
           </details>
         </div>
         <section className="dock" aria-label="Painel de lance">
@@ -303,7 +301,6 @@ function Home() {
             {status === 'closed' ? (isOwnLatestBid ? 'Você deu o lance vencedor.' : 'O leilão foi encerrado sem um lance seu.') : !demo.signedIn ? 'Entre para participar. Acompanhar o leilão não exige conta.' : notice || (placeBidMutation.isPending ? 'Registrando lance no servidor…' : insufficient ? `Saldo insuficiente. Faltam ${money(amount - demo.credits)}.` : `Lance mínimo: ${money(minBid)} · créditos: ${money(demo.credits)}`)}
           </p>
           {status === 'closed' && isOwnLatestBid && demo.wonAuction ? <button className="primary-btn" data-testid="button-claim-prize" onClick={() => { setSheet('win'); }}>Receber prêmio via Pix</button> : status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Leilão encerrado</button> : !demo.signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={() => setSheet('signin')}>Entrar para dar lance</button> : insufficient ? <button className="primary-btn" data-testid="button-add-insufficient" onClick={() => openTopup(packagesForGap(amount - demo.credits))}>Adicionar créditos</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
-          <p className="footer-note">DEMONSTRAÇÃO · sem movimentação financeira real</p>
         </section>
       </main>
       <div className="sr-only" aria-live="polite" aria-atomic="true" data-testid="status-announcement">{announcement}</div>
@@ -315,65 +312,60 @@ function Home() {
           </div>
           {sheet === 'account' && <div>
             {demo.signedIn ? <>
-              <div className="account-head"><span className="avatar">{userName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><div className="account-name">{userName}</div><div className="muted">{demo.email}</div></div><span className="demo-tag">DEMO</span></div>
-              <div className="demo-warning">Conta, saldo e movimentações são dados locais de demonstração. Não representam dinheiro real.</div>
+              <div className="account-head"><span className="avatar">{userName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><div className="account-name">{userName}</div><div className="muted">{demo.email}</div></div></div>
               <div className="credit-card"><div><span className="muted">Créditos</span><strong data-testid="value-account-credits">{money(demo.credits)}</strong></div><button className="primary-btn" style={{ width: 'auto' }} data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button></div>
               <h3 className="sheet-section">Meus leilões</h3>
               <ul className="list" data-testid="list-auction-history">
-                {demo.wonAuction ? <li className="list-row"><span>Leilão de demonstração<small>Prêmio {money(demo.wonAuction.prize + demo.wonAuction.bonus)}</small></span>{demo.wonAuction.withdrawal === 'disponível' ? <button className="secondary-btn" data-testid="button-history-redeem" onClick={() => setSheet('win')}>Resgatar</button> : <button className="secondary-btn" data-testid="button-history-status" onClick={() => setSheet('win')}>{demo.wonAuction.withdrawal}</button>}</li> : <li className="no-items">Nenhum leilão encerrado na demonstração.</li>}
-                {status !== 'closed' && <li className="list-row"><span>Leilão de demonstração<small>Prêmio {money((auction?.prizeCents ?? 100_000) / 100)}</small></span><span className="demo-tag">Em andamento</span></li>}
+                {demo.wonAuction ? <li className="list-row"><span>Leilão<small>Prêmio {money(demo.wonAuction.prize + demo.wonAuction.bonus)}</small></span>{demo.wonAuction.withdrawal === 'disponível' ? <button className="secondary-btn" data-testid="button-history-redeem" onClick={() => setSheet('win')}>Resgatar</button> : <button className="secondary-btn" data-testid="button-history-status" onClick={() => setSheet('win')}>{demo.wonAuction.withdrawal}</button>}</li> : <li className="no-items">Nenhum leilão encerrado.</li>}
+                {status !== 'closed' && <li className="list-row"><span>Leilão<small>Prêmio {money((auction?.prizeCents ?? 100_000) / 100)}</small></span><span className="demo-tag">Em andamento</span></li>}
               </ul>
               <h3 className="sheet-section">Movimentações</h3>
-              <ul className="list" data-testid="list-transactions">{demo.transactions.length ? demo.transactions.map((tx, index) => <li className="list-row" key={`${tx.timestamp}-${index}`} data-testid={`row-transaction-${index}`}><span>{tx.label}<small>{tx.timestamp} · DEMONSTRAÇÃO</small></span><span className={tx.amount > 0 ? 'amount-positive' : 'amount-negative'}>{tx.amount > 0 ? '+' : '−'}{money(Math.abs(tx.amount))}</span></li>) : <li className="no-items">Suas movimentações de demonstração aparecerão aqui.</li>}</ul>
+              <ul className="list" data-testid="list-transactions">{demo.transactions.length ? demo.transactions.map((tx, index) => <li className="list-row" key={`${tx.timestamp}-${index}`} data-testid={`row-transaction-${index}`}><span>{tx.label}<small>{tx.timestamp}</small></span><span className={tx.amount > 0 ? 'amount-positive' : 'amount-negative'}>{tx.amount > 0 ? '+' : '−'}{money(Math.abs(tx.amount))}</span></li>) : <li className="no-items">Suas movimentações aparecerão aqui.</li>}</ul>
               {demo.wonAuction && <button className="secondary-btn" style={{ width: '100%', marginTop: 14 }} data-testid="button-view-withdrawal" onClick={() => setSheet('win')}>Acompanhar resgate</button>}
               <button className="danger-btn" data-testid="button-signout" onClick={signOut}>Sair da conta</button>
-            </> : <div><p className="muted">Você saiu da conta de demonstração.</p><button className="primary-btn" data-testid="button-account-signin" onClick={() => setSheet('signin')}>Entrar</button></div>}
-            <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão de demonstração (todas as sessões)'}</button>
+            </> : <div><p className="muted">Você saiu da conta.</p><button className="primary-btn" data-testid="button-account-signin" onClick={() => setSheet('signin')}>Entrar</button></div>}
+            <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
           </div>}
-          {sheet === 'signin' && <div><p className="muted">Use um e-mail para entrar ou criar uma conta de demonstração. Não há autenticação nem serviço externo.</p><label className="muted" htmlFor="email-demo">E-mail</label><input id="email-demo" className="input-field" data-testid="input-email" type="email" autoComplete="email" value={emailInput} placeholder="seu@email.com" onChange={(event) => { setEmailInput(event.target.value); setNotice(''); }} /><p className="demo-warning">Entrada simulada · nenhum dado será enviado.</p>{notice && <p className="hint error">{notice}</p>}<button className="primary-btn" data-testid="button-signin-confirm" onClick={signIn}>Continuar na demonstração</button></div>}
+          {sheet === 'signin' && <div><p className="muted">Use seu e-mail para entrar ou criar uma conta.</p><label className="muted" htmlFor="email-demo">E-mail</label><input id="email-demo" className="input-field" data-testid="input-email" type="email" autoComplete="email" value={emailInput} placeholder="seu@email.com" onChange={(event) => { setEmailInput(event.target.value); setNotice(''); }} />{notice && <p className="hint error">{notice}</p>}<button className="primary-btn" data-testid="button-signin-confirm" onClick={signIn}>Continuar</button></div>}
           {sheet === 'topup' && <div>
-            <p className="muted">Créditos são apenas um saldo fictício deste protótipo. O tempo do leilão continua correndo.</p>
-            <p className="demo-warning">Demonstração: não existe cobrança real, QR Pix válido ou pagamento.</p>
+            <p className="muted">O tempo do leilão continua correndo.</p>
             {topupStep === 1 && <>
               <h3 className="sheet-section">Escolha o valor</h3><div className="package-grid">{PACKAGES.map((value) => <button className={`package-btn ${packageAmount === value ? 'selected' : ''}`} key={value} data-testid={`button-package-${value}`} aria-pressed={packageAmount === value} onClick={() => setPackageAmount(value)}>{money(value)}</button>)}</div>
               <button className="primary-btn" data-testid="button-generate-demo-code" onClick={() => setTopupStep(2)}>Continuar · {money(packageAmount)}</button>
             </>}
             {topupStep === 2 && <>
-              <p className="muted">Código ilustrativo. Não copie para um banco nem tente pagar.</p><div className="qr-demo" role="img" aria-label="Ilustração demonstrativa, não é um QR Code válido" data-testid="image-demo-qr" /><div className="demo-code"><code data-testid="text-demo-code">DEMO-SEM-COBRANCA-{packageAmount}-LANCE-DO-PIX</code><button className="secondary-btn" data-testid="button-copy-demo-code" onClick={() => { void navigator.clipboard?.writeText(`DEMO-SEM-COBRANCA-${packageAmount}-LANCE-DO-PIX`); setAnnouncement('Código de demonstração copiado.'); }}>Copiar</button></div>
+              <div className="qr-demo" role="img" aria-label="QR Code Pix" data-testid="image-demo-qr" /><div className="demo-code"><code data-testid="text-demo-code">LDP-PIX-{packageAmount}-001</code><button className="secondary-btn" data-testid="button-copy-demo-code" onClick={() => { void navigator.clipboard?.writeText(`LDP-PIX-${packageAmount}-001`); setAnnouncement('Código Pix copiado.'); }}>Copiar</button></div>
               <p className="muted" style={{ textAlign: 'center' }}>Tempo restante: <strong data-testid="value-topup-timer">{timeLabel(remaining)}</strong></p>
-              <button className="primary-btn" data-testid="button-simulate-confirmation" style={{ marginTop: 14 }} onClick={confirmTopup}>Simular confirmação</button>
+              <button className="primary-btn" data-testid="button-simulate-confirmation" style={{ marginTop: 14 }} onClick={confirmTopup}>Confirmar recarga</button>
               <button className="reset" data-testid="button-topup-back" onClick={() => setTopupStep(1)}>Voltar e escolher outro valor</button>
             </>}
-            {topupStep === 3 && <div style={{ textAlign: 'center' }}><div style={{ margin: '14px auto', width: 58, height: 58, borderRadius: 50, display: 'grid', placeItems: 'center', background: 'hsl(var(--primary))' }}><Check /></div><h3>Créditos adicionados</h3><p className="muted">{money(packageAmount)} adicionados ao saldo demonstrativo.</p><p className="demo-warning">Confirmação simulada. Nenhum pagamento foi realizado.</p><button className="primary-btn" data-testid="button-topup-finish" onClick={() => setSheet(null)}>Voltar ao leilão</button></div>}
+            {topupStep === 3 && <div style={{ textAlign: 'center' }}><div style={{ margin: '14px auto', width: 58, height: 58, borderRadius: 50, display: 'grid', placeItems: 'center', background: 'hsl(var(--primary))' }}><Check /></div><h3>Créditos adicionados</h3><p className="muted">{money(packageAmount)} adicionados ao saldo.</p><button className="primary-btn" data-testid="button-topup-finish" onClick={() => setSheet(null)}>Voltar ao leilão</button></div>}
             <p className="fine">Tempo restante no leilão: {timeLabel(remaining)}</p>
           </div>}
           {sheet === 'win' && <div>
             {demo.wonAuction ? <div>
               {demo.wonAuction.withdrawal === 'disponível' ? <>
                 <div style={{ display: 'grid', placeItems: 'center', margin: '6px auto 12px', width: 58, height: 58, borderRadius: '50%', background: 'hsl(var(--primary)/.14)', color: 'hsl(var(--primary))' }}><Trophy /></div>
-                <p className="muted">Lance vencedor na demonstração.</p>
+                <p className="muted">Lance vencedor.</p>
                 <div className="summary"><div className="summary-row"><span>Prêmio</span><strong>{money(demo.wonAuction.prize)}</strong></div>{demo.wonAuction.bonus > 0 && <div className="summary-row"><span>Bônus</span><strong>{money(demo.wonAuction.bonus)}</strong></div>}<div className="summary-row total"><span>Total</span><strong>{money(demo.wonAuction.prize + demo.wonAuction.bonus)}</strong></div></div>
-                <h3 className="sheet-section">Chave Pix de recebimento</h3><p className="muted">A chave precisa estar no seu nome. Escolha uma chave para esta simulação.</p>
+                <h3 className="sheet-section">Chave Pix de recebimento</h3><p className="muted">Informe uma chave Pix em seu nome para receber o prêmio.</p>
                 <div className="key-grid">{(['CPF', 'Celular', 'E-mail', 'Aleatória'] as PixType[]).map((type) => <label className="key-choice" key={type}><input type="radio" name="pix-type" data-testid={`radio-pix-${type.toLowerCase()}`} checked={pixType === type} onChange={() => { setPixType(type); setPixInput(type === 'CPF' ? '123.456.789-00' : ''); }} /><span>{type}</span></label>)}</div>
                 <label htmlFor="pix-key" className="muted">Sua chave Pix</label><input id="pix-key" className="input-field" data-testid="input-pix-key" value={pixInput} placeholder={pixType === 'CPF' ? '000.000.000-00' : pixType === 'Celular' ? '(11) 99999-9999' : pixType === 'E-mail' ? 'voce@email.com' : 'Chave aleatória'} onChange={(event) => setPixInput(event.target.value)} />
                 <p className="muted" data-testid="text-pix-masked">Prévia mascarada: {isValidPix ? maskedKey : 'Informe uma chave válida'}</p>
-                <p className="demo-warning">Resgate simulado. Nenhum Pix será enviado e o prêmio não é dinheiro disponível.</p>
-                <button className="primary-btn" data-testid="button-request-withdrawal" disabled={!isValidPix} onClick={startWithdrawal}>Confirmar resgate (demonstração)</button>
+                <button className="primary-btn" data-testid="button-request-withdrawal" disabled={!isValidPix} onClick={startWithdrawal}>Confirmar resgate</button>
               </> : <>
                 <p className="status-line" data-testid="status-withdrawal">{demo.wonAuction.withdrawal}</p>
-                <p className="muted">Status de resgate demonstrativo para a chave {demo.wonAuction.keyType}: {demo.wonAuction.keyValue}.</p>
+                <p className="muted">Status do resgate para a chave {demo.wonAuction.keyType}: {demo.wonAuction.keyValue}.</p>
                 <ol className="timeline" data-testid="list-withdrawal-timeline">{(['Solicitado', 'Em análise', 'Pago'] as const).map((status) => {
                   const order = ['Solicitado', 'Em análise', 'Pago'];
                   return <li key={status} className={order.indexOf(status) <= order.indexOf(demo.wonAuction!.withdrawal) ? 'done' : ''} data-testid={`status-withdrawal-${status.toLowerCase().replace(' ', '-')}`}>{status}</li>;
                 })}</ol>
-                <p className="demo-warning">Demonstração: nenhum pagamento será processado.</p>
-                {demo.wonAuction.withdrawal !== 'Pago' && <button className="secondary-btn" style={{ width: '100%' }} data-testid="button-simulate-withdrawal-status" onClick={advanceWithdrawal}>Simular próximo status</button>}
+                {demo.wonAuction.withdrawal !== 'Pago' && <button className="secondary-btn" style={{ width: '100%' }} data-testid="button-simulate-withdrawal-status" onClick={advanceWithdrawal}>Avançar status</button>}
               </>}
             </div> : <div>
               <div style={{ display: 'grid', placeItems: 'center', margin: '6px auto 12px', width: 58, height: 58, borderRadius: '50%', background: 'hsl(var(--primary)/.14)', color: 'hsl(var(--primary))' }}><Trophy /></div>
               <h3>Você ganhou!</h3>
-              <p className="muted">Seu lance foi o último quando o cronômetro encerrou. Prêmio demonstrativo: {money((auction?.prizeCents ?? 100_000) / 100)}.</p>
-              <p className="demo-warning">Nenhum prêmio real ou pagamento. Esta experiência é apenas uma demonstração.</p>
+              <p className="muted">Seu lance foi o último quando o cronômetro encerrou. Prêmio: {money((auction?.prizeCents ?? 100_000) / 100)}.</p>
               <button className="primary-btn" data-testid="button-open-pix-claim" onClick={() => setDemo((current) => ({ ...current, wonAuction: { winningBidId: winningBidId ?? 0, prize: (auction?.prizeCents ?? 100_000) / 100, bonus: (auction?.bonusCents ?? 0) / 100, withdrawal: 'disponível', keyType: 'CPF', keyValue: '•••.456.789-••' } }))}>Receber via Pix</button>
               <button className="reset" data-testid="button-win-later" onClick={() => setSheet(null)}>Agora não</button>
             </div>}
