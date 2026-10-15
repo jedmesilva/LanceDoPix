@@ -141,16 +141,18 @@ function Home() {
   }, [sheet]);
 
   useEffect(() => {
-    if (status === 'closed' && isOwnLatestBid && currentWin && seenWinId !== currentWin.id) {
-      const id = window.setTimeout(() => {
-        setSelectedWinId(currentWin.id);
-        setSheet('win');
-        setSeenWinId(currentWin.id);
-      }, 900);
-      return () => window.clearTimeout(id);
+    if (status !== 'closed' || !isOwnLatestBid) return;
+
+    setSheet('win');
+    if (!currentWin) {
+      void queryClient.invalidateQueries({ queryKey: getGetCurrentAccountQueryKey() });
+      return;
     }
-    return undefined;
-  }, [status, isOwnLatestBid, currentWin?.id, seenWinId]);
+    if (seenWinId !== currentWin.id) {
+      setSelectedWinId(currentWin.id);
+      setSeenWinId(currentWin.id);
+    }
+  }, [status, isOwnLatestBid, currentWin?.id, seenWinId, queryClient]);
 
   function updateBid(value: number) {
     setBidInput((Math.round(value * 100) / 100).toFixed(2).replace('.', ','));
@@ -300,10 +302,10 @@ function Home() {
             {(auctionQuery.isError || accountQuery.isError) && <p className="inline-error" role="alert">Não foi possível atualizar os dados agora. Tentando novamente…</p>}
           </section>
           <section aria-labelledby="bids-title">
-            <h2 id="bids-title" className="section-head">{status === 'closed' ? 'Lances · Lance vencedor' : 'Lance atual'}</h2>
+            <h2 id="bids-title" className="section-head">Últimos lances</h2>
             <ol className="bid-list" aria-live="polite">
               {latestBids.map((bid, index) => <li key={`${bid.timestamp}-${index}-${bid.amount}`} className={`bid-row ${index === 0 ? 'current' : ''}`} data-testid={`row-bid-${index}`}>
-                <span><span className="bid-label">{index === 0 && status === 'closed' ? 'Lance vencedor' : bid.bidder}</span>{bid.ownBid && <span className="own-bid">Seu lance</span>}</span>
+                <span><span className="bid-label">{bid.bidder}</span>{bid.ownBid && <span className="own-bid">Seu lance</span>}</span>
                 <span className="bid-amount" data-testid={`value-bid-${index}`}>{money(bid.amount)}</span>
               </li>)}
             </ol>
@@ -324,7 +326,7 @@ function Home() {
           <p className={`hint ${notice.includes('insuficiente') || notice.includes('mínimo') ? 'error' : notice ? 'success' : ''}`} role="status" aria-live="polite" data-testid="status-bid-hint">
             {status === 'closed' ? (isOwnLatestBid ? 'Você deu o lance vencedor.' : 'O leilão foi encerrado sem um lance seu.') : !account ? 'Conectando à sua conta…' : !signedIn ? 'Entre para participar. Acompanhar o leilão não exige conta.' : notice || (placeBidMutation.isPending ? 'Registrando lance no servidor…' : `Lance mínimo: ${money(minBid)} · créditos: ${money(credits)}`)}
           </p>
-          {status === 'closed' && isOwnLatestBid && currentWin ? <button className="primary-btn" data-testid="button-claim-prize" onClick={() => openWin(currentWin.id)}>Receber prêmio via Pix</button> : status === 'closed' && isOwnLatestBid ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Confirmando vitória…</button> : status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Leilão encerrado</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={() => setSheet('signin')}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
+          {status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Leilão encerrado</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={() => setSheet('signin')}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
         </section>
       </main>
       <div className="sr-only" aria-live="polite" aria-atomic="true" data-testid="status-announcement">{announcement}</div>
@@ -387,7 +389,7 @@ function Home() {
                 })}</ol>
                 {selectedWin.withdrawalStatus !== 'paid' && <button className="secondary-btn" style={{ width: '100%' }} data-testid="button-simulate-withdrawal-status" onClick={advanceWithdrawal} disabled={advanceWithdrawalMutation.isPending}>{advanceWithdrawalMutation.isPending ? 'Atualizando…' : 'Avançar status'}</button>}
               </>}
-            </div> : <p className="muted">Carregando os dados do prêmio…</p>}
+            </div> : <p className="muted" role="status">Você venceu! Confirmando os dados do prêmio…</p>}
           </div>}
         </section>
       </div>}
@@ -395,13 +397,13 @@ function Home() {
   );
 }
 
-function validPix(type: PixType, value: string) {
+function validPix(type: PixKeyType, value: string) {
   if (type === 'CPF') return value.replace(/\D/g, '').length === 11;
   if (type === 'Celular') return value.replace(/\D/g, '').length >= 10 && value.replace(/\D/g, '').length <= 13;
   if (type === 'E-mail') return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   return value.trim().length >= 20;
 }
-function maskPix(type: PixType, value: string) {
+function maskPix(type: PixKeyType, value: string) {
   if (type === 'CPF') return '•••.456.789-••';
   if (type === 'Celular') return value.length > 4 ? `${value.slice(0, 3)} •••••-${value.slice(-4)}` : '••••••••••';
   if (type === 'E-mail') {
