@@ -22,6 +22,11 @@ import {
 
 const money = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const timeLabel = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+const auctionDateLabel = (value: Date | string) => new Date(String(value)).toLocaleDateString('pt-BR', {
+  day: '2-digit',
+  month: '2-digit',
+  timeZone: 'America/Sao_Paulo',
+});
 const withdrawalLabels: Record<AccountWinWithdrawalStatus, string> = {
   available: 'disponível',
   requested: 'Solicitado',
@@ -378,22 +383,43 @@ function Home() {
       <div className="sr-only" aria-live="polite" aria-atomic="true" data-testid="status-announcement">{announcement}</div>
       {sheet && <div className="overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSheet(null); }} role="presentation">
         <section className="sheet" role="dialog" aria-modal="true" aria-labelledby="dialog-title" data-testid={`dialog-${sheet}`}>
-          <div className="sheet-head">
+          {sheet === 'account' && signedIn && account ? <div className="sheet-head account-sheet-head">
+            <div className="account-head">
+              <span className="avatar account-avatar" aria-hidden="true">{initials}</span>
+              <div className="account-identity">
+                <strong className="account-name" id="dialog-title">{userName}</strong>
+                <span className="muted">{account.email ?? 'Conta neste navegador'}</span>
+              </div>
+            </div>
+            <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
+          </div> : <div className="sheet-head">
             <h2 id="dialog-title">{sheet === 'account' ? 'Minha conta' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entrar para dar lances' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
-          </div>
+          </div>}
           {sheet === 'account' && <div>
             {signedIn ? <>
-              <div className="account-head"><span className="avatar">{initials}</span><div><div className="account-name">{userName}</div><div className="muted">{account?.email ?? 'Conta neste navegador'}</div></div></div>
-              <div className="credit-card"><div><span className="muted">Créditos</span><strong data-testid="value-account-credits">{money(credits)}</strong></div><button className="primary-btn" style={{ width: 'auto' }} data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button></div>
-              <h3 className="sheet-section">Meus leilões</h3>
-              <ul className="list" data-testid="list-auction-history">
-                {account?.wins.length ? account.wins.map((win) => <li className="list-row" key={win.id}><span>Leilão<small>Prêmio {money((win.prizeCents + win.bonusCents) / 100)}</small></span><button className="secondary-btn" data-testid={win.withdrawalStatus === 'available' ? 'button-history-redeem' : 'button-history-status'} onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'available' ? 'Resgatar' : withdrawalLabels[win.withdrawalStatus]}</button></li>) : <li className="no-items">Nenhum leilão encerrado.</li>}
-                {auction && status !== 'closed' && <li className="list-row"><span>Leilão<small>Prêmio {money(auction.prizeCents / 100)}</small></span><span className="demo-tag">Em andamento</span></li>}
+              <div className="account-balance">
+                <span className="account-balance-label">Créditos</span>
+                <strong data-testid="value-account-credits">{money(credits)}</strong>
+                <button className="account-pill" data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button>
+              </div>
+              <h3 className="account-section">Meus leilões</h3>
+              <ul className="account-list" data-testid="list-auction-history">
+                {auction && status !== 'closed' && <li className="account-list-row" data-testid="row-auction-current">
+                  <span className="account-list-description">Prêmio {money(auction.prizeCents / 100)}<small>hoje</small></span>
+                  <span className="account-tag account-tag-live">Em andamento</span>
+                </li>}
+                {account?.wins.slice(0, auction && status !== 'closed' ? 3 : 4).map((win) => <li className="account-list-row" key={win.id} data-testid={`row-auction-win-${win.id}`}>
+                  <span className="account-list-description">Prêmio {money(win.prizeCents / 100)}<small>{auctionDateLabel(win.createdAt)} - Ganhou</small></span>
+                  {win.withdrawalStatus === 'available'
+                    ? <button className="account-pill account-pill-small" data-testid="button-history-redeem" onClick={() => openWithdrawal(win.id)}>Resgatar</button>
+                    : <button className={`account-tag account-tag-button ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? withdrawalLabels.paid : 'Em análise'}</button>}
+                </li>)}
+                {!auction && !account?.wins.length && <li className="account-empty">Nenhum leilão por aqui ainda.</li>}
               </ul>
-              <h3 className="sheet-section">Movimentações</h3>
-              <ul className="list" data-testid="list-transactions">{account?.transactions.length ? account.transactions.map((tx) => <li className="list-row" key={tx.id} data-testid={`row-transaction-${tx.id}`}><span>{tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span><span className={tx.amountCents > 0 ? 'amount-positive' : 'amount-negative'}>{tx.amountCents > 0 ? '+' : '−'}{money(Math.abs(tx.amountCents) / 100)}</span></li>) : <li className="no-items">Suas movimentações aparecerão aqui.</li>}</ul>
-              <button className="danger-btn" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
+              <h3 className="account-section">Movimentações</h3>
+              <ul className="account-list" data-testid="list-transactions">{account?.transactions.length ? account.transactions.map((tx) => <li className="account-list-row" key={tx.id} data-testid={`row-transaction-${tx.id}`}><span className="account-list-description">{tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span><span className={tx.amountCents > 0 ? 'account-amount-positive' : 'account-amount-negative'}>{tx.amountCents > 0 ? '+' : '−'}{money(Math.abs(tx.amountCents) / 100)}</span></li>) : <li className="account-empty">Suas movimentações aparecerão aqui.</li>}</ul>
+              <button className="danger-btn account-signout" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
             </> : <div><p className="muted">Você saiu da conta.</p><button className="primary-btn" data-testid="button-account-signin" onClick={() => setSheet('signin')}>Entrar</button></div>}
             <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
           </div>}
