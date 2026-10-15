@@ -347,7 +347,6 @@ function Home() {
               </ul>
               <h3 className="sheet-section">Movimentações</h3>
               <ul className="list" data-testid="list-transactions">{account?.transactions.length ? account.transactions.map((tx) => <li className="list-row" key={tx.id} data-testid={`row-transaction-${tx.id}`}><span>{tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span><span className={tx.amountCents > 0 ? 'amount-positive' : 'amount-negative'}>{tx.amountCents > 0 ? '+' : '−'}{money(Math.abs(tx.amountCents) / 100)}</span></li>) : <li className="no-items">Suas movimentações aparecerão aqui.</li>}</ul>
-              {account?.wins[0] && <button className="secondary-btn" style={{ width: '100%', marginTop: 14 }} data-testid="button-view-withdrawal" onClick={() => openWin(account.wins[0].id)}>Acompanhar resgate</button>}
               <button className="danger-btn" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
             </> : <div><p className="muted">Você saiu da conta.</p><button className="primary-btn" data-testid="button-account-signin" onClick={() => setSheet('signin')}>Entrar</button></div>}
             <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
