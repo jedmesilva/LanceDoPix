@@ -86,6 +86,7 @@ function Home() {
     ? currentWin
     : account?.wins.find((win) => win.id === selectedWinId) ?? null;
   const winningBid = auction?.bids.find((bid) => bid.id === selectedWin?.winningBidId) ?? null;
+  const showSharedAuction = Boolean(auction && !(signedIn && currentWin));
   const [topupStep, setTopupStep] = useState<1 | 2 | 3>(1);
   const [packageAmountCents, setPackageAmountCents] = useState(10_000);
   const [bidInput, setBidInput] = useState('');
@@ -330,7 +331,8 @@ function Home() {
           <div className="brand" aria-label="Lance do Pix"><span className="brand-mark" aria-hidden="true" />Lance do Pix</div>
           <div className="head-actions">
             {signedIn && account && <button className="balance-chip" data-testid="button-balance" onClick={() => openTopup()} aria-label={`Saldo ${money(credits)}. Adicionar créditos`}><span data-testid="value-credits">{money(credits)}</span><span className="add"><Plus size={16} /></span></button>}
-            {signedIn ? <button className={`avatar ${account?.wins.some((win) => win.withdrawalStatus === 'available') ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label="Minha conta">{initials}</button> : <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={() => setSheet('signin')}><LogIn size={16} /> Entrar</button>}
+            <button className={`avatar ${signedIn && account?.wins.some((win) => win.withdrawalStatus === 'available') ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label={signedIn ? 'Minha conta' : 'Ver leilão e acessar a conta'}>{signedIn ? initials : '?'}</button>
+            {!signedIn && <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={() => setSheet('signin')}><LogIn size={16} /> Entrar</button>}
             <button className="close-btn" data-testid="button-theme" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
           </div>
         </div>
@@ -397,31 +399,34 @@ function Home() {
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div>}
           {sheet === 'account' && <div>
-            {signedIn ? <>
-              <div className="account-balance">
+            {signedIn ? <div className="account-balance">
                 <span className="account-balance-label">Créditos</span>
                 <strong data-testid="value-account-credits">{money(credits)}</strong>
                 <button className="account-pill" data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button>
-              </div>
-              <h3 className="account-section">Meus leilões</h3>
-              <ul className="account-list" data-testid="list-auction-history">
-                {auction && status !== 'closed' && <li className="account-list-row" data-testid="row-auction-current">
-                  <span className="account-list-description">Prêmio {money(auction.prizeCents / 100)}<small>hoje</small></span>
-                  <span className="account-tag account-tag-live">Em andamento</span>
-                </li>}
-                {account?.wins.slice(0, auction && status !== 'closed' ? 3 : 4).map((win) => <li className="account-list-row" key={win.id} data-testid={`row-auction-win-${win.id}`}>
-                  <span className="account-list-description">Prêmio {money(win.prizeCents / 100)}<small>{auctionDateLabel(win.createdAt)} - Ganhou</small></span>
-                  {win.withdrawalStatus === 'available'
-                    ? <button className="account-pill account-pill-small" data-testid="button-history-redeem" onClick={() => openWithdrawal(win.id)}>Resgatar</button>
-                    : <button className={`account-tag account-tag-button ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? withdrawalLabels.paid : 'Em análise'}</button>}
-                </li>)}
-                {!auction && !account?.wins.length && <li className="account-empty">Nenhum leilão por aqui ainda.</li>}
-              </ul>
+              </div> : <div className="account-guest">
+                <p className="muted">O leilão é compartilhado e fica visível para todos. Entre para dar lances e acessar sua conta.</p>
+                <button className="primary-btn" data-testid="button-account-signin" onClick={() => setSheet('signin')}>Entrar para dar lances</button>
+              </div>}
+            <h3 className="account-section">{signedIn ? 'Meus leilões' : 'Leilão'}</h3>
+            <ul className="account-list" data-testid="list-auction-history">
+              {showSharedAuction && auction && <li className="account-list-row" data-testid="row-auction-current">
+                <span className="account-list-description">Prêmio {money(auction.prizeCents / 100)}<small>hoje</small></span>
+                <span className={`account-tag ${status === 'closed' ? '' : 'account-tag-live'}`}>{status === 'closed' ? 'Encerrado' : 'Em andamento'}</span>
+              </li>}
+              {signedIn && account?.wins.slice(0, showSharedAuction ? 3 : 4).map((win) => <li className="account-list-row" key={win.id} data-testid={`row-auction-win-${win.id}`}>
+                <span className="account-list-description">Prêmio {money(win.prizeCents / 100)}<small>{auctionDateLabel(win.createdAt)} - Ganhou</small></span>
+                {win.withdrawalStatus === 'available'
+                  ? <button className="account-pill account-pill-small" data-testid="button-history-redeem" onClick={() => openWithdrawal(win.id)}>Resgatar</button>
+                  : <button className={`account-tag account-tag-button ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? withdrawalLabels.paid : 'Em análise'}</button>}
+              </li>)}
+              {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando o leilão compartilhado…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar o leilão agora.' : 'Nenhum leilão por aqui ainda.'}</li>}
+            </ul>
+            {signedIn && <>
               <h3 className="account-section">Movimentações</h3>
               <ul className="account-list" data-testid="list-transactions">{account?.transactions.length ? account.transactions.map((tx) => <li className="account-list-row" key={tx.id} data-testid={`row-transaction-${tx.id}`}><span className="account-list-description">{tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span><span className={tx.amountCents > 0 ? 'account-amount-positive' : 'account-amount-negative'}>{tx.amountCents > 0 ? '+' : '−'}{money(Math.abs(tx.amountCents) / 100)}</span></li>) : <li className="account-empty">Suas movimentações aparecerão aqui.</li>}</ul>
               <button className="danger-btn account-signout" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
-            </> : <div><p className="muted">Você saiu da conta.</p><button className="primary-btn" data-testid="button-account-signin" onClick={() => setSheet('signin')}>Entrar</button></div>}
-            <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
+              <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
+            </>}
           </div>}
           {sheet === 'signin' && <div><p className="muted">Use seu e-mail para identificar a conta neste navegador.</p><label className="muted" htmlFor="email-demo">E-mail</label><input id="email-demo" className="input-field" data-testid="input-email" type="email" autoComplete="email" value={emailInput} placeholder="seu@email.com" onChange={(event) => { setEmailInput(event.target.value); setNotice(''); }} />{notice && <p className="hint error">{notice}</p>}<button className="primary-btn" data-testid="button-signin-confirm" onClick={signIn} disabled={profileMutation.isPending}>{profileMutation.isPending ? 'Salvando…' : 'Continuar'}</button></div>}
           {sheet === 'topup' && <div>
