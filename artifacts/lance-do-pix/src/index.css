@@ -174,6 +174,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .timeline li.done:before { background: hsl(var(--primary)); border-color: hsl(var(--primary)); }
 .no-items { padding: 16px; border-radius: 12px; background: hsl(var(--background)); font-size: 14px; color: hsl(var(--muted-foreground)); }
 .sign-in { display: flex; align-items: center; gap: 8px; }
+.auction-preview-btn { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 0 12px; border-radius: 999px; font-size: 14px; }
 .status-line { font-weight: 700; }
 .reset { font-size: 12px; width: 100%; padding: 12px; margin-top: 12px; color: hsl(var(--muted-foreground)); border: 0; background: transparent; text-decoration: underline; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -182,6 +183,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @media (min-width: 620px) { .overlay { align-items: center; padding: 20px; } .sheet { border-radius: 24px; max-height: 88dvh; } }
 @media (max-width: 767px) {
   .top-inner { padding: 0 18px; height: 60px; }
+  .auction-preview-btn svg { display: none; }
   .main-layout { display: flex; flex-direction: column; gap: 28px; padding: 24px 18px 36px; }
   .auction-content { gap: 30px; }
   .dock { position: sticky; top: auto; bottom: 0; z-index: 10; margin: 0 -18px -36px; border-radius: 22px 22px 0 0; padding: 16px 18px calc(14px + env(safe-area-inset-bottom)); width: calc(100% + 36px); box-shadow: 0 -12px 28px hsl(160 25% 8% / .08); }
@@ -189,6 +191,14 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .timer { font-size: 28px; }
   .head-actions { gap: 7px; }
   .demo-tag { display: none; }
+}
+@media (max-width: 380px) {
+  .top-inner { padding: 0 12px; }
+  .head-actions { gap: 5px; }
+  .auction-preview-btn { padding: 0 10px; }
+  .auction-preview-btn svg { display: block; }
+  .auction-preview-btn span { display: none; }
+  .sign-in { min-height: 38px; padding: 0 10px; font-size: 14px; }
 }
 @media (max-height: 680px) and (max-width: 767px) { .auction-content { gap: 20px; } .prize { font-size: 58px; } .timer-row { margin-top: 20px; } .dock { padding-top: 12px; } .quick-bids { display: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }

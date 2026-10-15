@@ -331,8 +331,12 @@ function Home() {
           <div className="brand" aria-label="Lance do Pix"><span className="brand-mark" aria-hidden="true" />Lance do Pix</div>
           <div className="head-actions">
             {signedIn && account && <button className="balance-chip" data-testid="button-balance" onClick={() => openTopup()} aria-label={`Saldo ${money(credits)}. Adicionar créditos`}><span data-testid="value-credits">{money(credits)}</span><span className="add"><Plus size={16} /></span></button>}
-            <button className={`avatar ${signedIn && account?.wins.some((win) => win.withdrawalStatus === 'available') ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label={signedIn ? 'Minha conta' : 'Ver leilão e acessar a conta'}>{signedIn ? initials : '?'}</button>
-            {!signedIn && <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={() => setSheet('signin')}><LogIn size={16} /> Entrar</button>}
+            {signedIn && account
+              ? <button className={`avatar ${account.wins.some((win) => win.withdrawalStatus === 'available') ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label="Minha conta">{initials}</button>
+              : <>
+                <button className="secondary-btn auction-preview-btn" data-testid="button-auction-preview" onClick={() => setSheet('account')} aria-label="Ver leilão compartilhado"><Trophy size={16} /><span>Leilão</span></button>
+                <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={() => setSheet('signin')}><LogIn size={16} /> Entrar</button>
+              </>}
             <button className="close-btn" data-testid="button-theme" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
           </div>
         </div>
@@ -395,7 +399,7 @@ function Home() {
             </div>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div> : <div className="sheet-head">
-            <h2 id="dialog-title">{sheet === 'account' ? 'Minha conta' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entrar para dar lances' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
+            <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Leilão compartilhado' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entrar para dar lances' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div>}
           {sheet === 'account' && <div>
