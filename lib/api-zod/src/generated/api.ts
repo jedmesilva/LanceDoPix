@@ -149,8 +149,8 @@ export const requestAccountWithdrawalBodyPixKeyMax = 254;
 
 
 export const RequestAccountWithdrawalBody = zod.object({
-  "pixType": zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),
-  "pixKey": zod.string().min(1).max(requestAccountWithdrawalBodyPixKeyMax)
+  "pixType": zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']).optional(),
+  "pixKey": zod.string().min(1).max(requestAccountWithdrawalBodyPixKeyMax).optional()
 })
 
 export const RequestAccountWithdrawalResponse = zod.object({

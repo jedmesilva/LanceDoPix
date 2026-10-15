@@ -39,6 +39,15 @@ export const PixKeyType = {
 } as const;
 
 export interface AccountWithdrawalInput {
+  pixType?: PixKeyType;
+  /**
+     * @minLength 1
+     * @maxLength 254
+     */
+  pixKey?: string;
+}
+
+export interface AccountPixKeyInput {
   pixType: PixKeyType;
   /**
      * @minLength 1

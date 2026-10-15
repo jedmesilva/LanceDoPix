@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccountPixKeyInput,
   AccountProfileInput,
   AccountTopUpInput,
   AccountWithdrawalInput,
@@ -564,7 +565,7 @@ export const getUpdateAccountWinPixKeyUrl = (winId: number,) => {
  * @summary Update the Pix key for an unpaid account win
  */
 export const updateAccountWinPixKey = async (winId: number,
-    accountWithdrawalInput: AccountWithdrawalInput, options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+    accountPixKeyInput: AccountPixKeyInput, options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -585,7 +586,7 @@ return customFetch<CurrentAccount>(getUpdateAccountWinPixKeyUrl(winId),
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(accountWithdrawalInput)
+    body: JSON.stringify(accountPixKeyInput)
   }
 );}
 
@@ -623,9 +624,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateAccountWinPixKeyMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccountWinPixKey>>>
-    export type UpdateAccountWinPixKeyMutationBody = BodyType<AccountWithdrawalInput>
+    export type UpdateAccountWinPixKeyMutationBody = BodyType<AccountPixKeyInput>
     export type UpdateAccountWinPixKeyMutationError = ErrorType<ApiError>
-    export type UpdateAccountWinPixKeyMutationVariables = {winId: number;data: BodyType<AccountWithdrawalInput>}
+    export type UpdateAccountWinPixKeyMutationVariables = {winId: number;data: BodyType<AccountPixKeyInput>}
 
     /**
  * @summary Update the Pix key for an unpaid account win

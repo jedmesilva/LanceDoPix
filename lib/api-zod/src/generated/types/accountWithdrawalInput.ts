@@ -8,10 +8,10 @@
 import type { PixKeyType } from './pixKeyType';
 
 export interface AccountWithdrawalInput {
-  pixType: PixKeyType;
+  pixType?: PixKeyType;
   /**
      * @minLength 1
      * @maxLength 254
      */
-  pixKey: string;
+  pixKey?: string;
 }

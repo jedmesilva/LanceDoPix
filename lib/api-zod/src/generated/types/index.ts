@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accountPixKeyInput';
 export * from './accountProfileInput';
 export * from './accountTopUpInput';
 export * from './accountTopUpInputAmountCents';

@@ -146,8 +146,20 @@ async function recordClosedAuctionWinner(
 
   await client.query(
     `INSERT INTO demo_auction_wins
-       (auction_id, winning_bid_id, account_id, prize_cents, bonus_cents)
-     VALUES ($1, $2, $3, $4, $5)
+       (auction_id, winning_bid_id, account_id, prize_cents, bonus_cents, pix_type, pix_key)
+     VALUES (
+       $1, $2, $3, $4, $5,
+       (SELECT pix_type
+        FROM demo_auction_wins
+        WHERE account_id = $3 AND pix_key IS NOT NULL
+        ORDER BY updated_at DESC, id DESC
+        LIMIT 1),
+       (SELECT pix_key
+        FROM demo_auction_wins
+        WHERE account_id = $3 AND pix_key IS NOT NULL
+        ORDER BY updated_at DESC, id DESC
+        LIMIT 1)
+     )
      ON CONFLICT (winning_bid_id) DO NOTHING`,
     [
       auction.id,

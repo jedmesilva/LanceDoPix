@@ -170,7 +170,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AccountWithdrawalInput"
+              $ref: "#/components/schemas/AccountPixKeyInput"
       responses:
         "200":
           description: Updated account state
@@ -326,6 +326,15 @@ components:
       type: string
       enum: [CPF, Celular, E-mail, Aleatória]
     AccountWithdrawalInput:
+      type: object
+      properties:
+        pixType:
+          $ref: "#/components/schemas/PixKeyType"
+        pixKey:
+          type: string
+          minLength: 1
+          maxLength: 254
+    AccountPixKeyInput:
       type: object
       properties:
         pixType:

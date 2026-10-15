@@ -236,8 +236,8 @@ export function createAccountTopUp(
 export function requestAccountWithdrawal(
   accountId: string,
   winId: number,
-  pixType: PixKeyType,
-  pixKey: string,
+  pixType?: PixKeyType,
+  pixKey?: string,
 ): Promise<CurrentAccountState> {
   return withTransaction(async (client) => {
     const accountResult = await client.query<AccountRow>(
@@ -251,12 +251,12 @@ export function requestAccountWithdrawal(
     if (!account) throw new Error("The anonymous account was not found.");
     requireSignedIn(account);
 
-    if (!isValidPixKey(pixType, pixKey)) {
-      throw new AccountActionError("Informe uma chave Pix válida.", 400);
-    }
-
-    const winResult = await client.query<{ withdrawal_status: WinRow["withdrawal_status"] }>(
-      `SELECT withdrawal_status
+    const winResult = await client.query<{
+      withdrawal_status: WinRow["withdrawal_status"];
+      pix_type: PixKeyType | null;
+      pix_key: string | null;
+    }>(
+      `SELECT withdrawal_status, pix_type, pix_key
        FROM demo_auction_wins
        WHERE id = $1 AND account_id = $2
        FOR UPDATE`,
@@ -268,6 +268,19 @@ export function requestAccountWithdrawal(
       throw new AccountActionError("O resgate já foi solicitado.", 409);
     }
 
+    if ((pixType === undefined) !== (pixKey === undefined)) {
+      throw new AccountActionError("Informe uma chave Pix válida.", 400);
+    }
+    const selectedPixType = pixType ?? win.pix_type;
+    const selectedPixKey = pixKey ?? win.pix_key;
+    if (
+      !selectedPixType ||
+      !selectedPixKey ||
+      !isValidPixKey(selectedPixType, selectedPixKey)
+    ) {
+      throw new AccountActionError("Informe uma chave Pix válida.", 400);
+    }
+
     await client.query(
       `UPDATE demo_auction_wins
        SET withdrawal_status = 'requested',
@@ -275,7 +288,7 @@ export function requestAccountWithdrawal(
            pix_key = $4,
            updated_at = NOW()
        WHERE id = $1 AND account_id = $2`,
-      [winId, accountId, pixType, pixKey.trim()],
+      [winId, accountId, selectedPixType, selectedPixKey.trim()],
     );
     return readAccount(client, accountId);
   });
@@ -315,13 +328,9 @@ export function updateAccountWinPixKey(
     );
     const win = winResult.rows[0];
     if (!win) throw new AccountActionError("Prêmio não encontrado.", 404);
-    if (
-      win.withdrawal_status === "available" ||
-      win.withdrawal_status === "paid" ||
-      !win.pix_key
-    ) {
+    if (win.withdrawal_status === "paid") {
       throw new AccountActionError(
-        "A chave Pix só pode ser alterada após solicitar o resgate e antes do pagamento.",
+        "A chave Pix só pode ser alterada antes do pagamento do prêmio.",
         409,
       );
     }
