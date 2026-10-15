@@ -354,20 +354,17 @@ function Home() {
           </div>}
           {sheet === 'signin' && <div><p className="muted">Use seu e-mail para identificar a conta neste navegador.</p><label className="muted" htmlFor="email-demo">E-mail</label><input id="email-demo" className="input-field" data-testid="input-email" type="email" autoComplete="email" value={emailInput} placeholder="seu@email.com" onChange={(event) => { setEmailInput(event.target.value); setNotice(''); }} />{notice && <p className="hint error">{notice}</p>}<button className="primary-btn" data-testid="button-signin-confirm" onClick={signIn} disabled={profileMutation.isPending}>{profileMutation.isPending ? 'Salvando…' : 'Continuar'}</button></div>}
           {sheet === 'topup' && <div>
-            <p className="muted">O tempo do leilão continua correndo.</p>
             {topupStep === 1 && <>
               <h3 className="sheet-section">Escolha o valor</h3><div className="package-grid">{topUpOptionsCents.map((valueCents) => <button className={`package-btn ${packageAmountCents === valueCents ? 'selected' : ''}`} key={valueCents} data-testid={`button-package-${valueCents / 100}`} aria-pressed={packageAmountCents === valueCents} onClick={() => setPackageAmountCents(valueCents)}>{money(valueCents / 100)}</button>)}</div>
               <button className="primary-btn" data-testid="button-generate-demo-code" onClick={() => { setNotice(''); setTopupStep(2); }}>Continuar · {money(packageAmountCents / 100)}</button>
             </>}
             {topupStep === 2 && <>
               <div className="qr-demo" role="img" aria-label="QR Code Pix" data-testid="image-demo-qr" /><div className="demo-code"><code data-testid="text-demo-code">LDP-PIX-{packageAmountCents / 100}-001</code><button className="secondary-btn" data-testid="button-copy-demo-code" onClick={() => { void navigator.clipboard?.writeText(`LDP-PIX-${packageAmountCents / 100}-001`); setAnnouncement('Código Pix copiado.'); }}>Copiar</button></div>
-              <p className="muted" style={{ textAlign: 'center' }}>Tempo restante: <strong data-testid="value-topup-timer">{timeLabel(remaining)}</strong></p>
               {notice && <p className="hint error" role="alert">{notice}</p>}
               <button className="primary-btn" data-testid="button-simulate-confirmation" style={{ marginTop: 14 }} onClick={confirmTopup} disabled={topUpMutation.isPending}>{topUpMutation.isPending ? 'Confirmando…' : 'Confirmar recarga'}</button>
               <button className="reset" data-testid="button-topup-back" onClick={() => setTopupStep(1)}>Voltar e escolher outro valor</button>
             </>}
             {topupStep === 3 && <div style={{ textAlign: 'center' }}><div style={{ margin: '14px auto', width: 58, height: 58, borderRadius: 50, display: 'grid', placeItems: 'center', background: 'hsl(var(--primary))' }}><Check /></div><h3>Créditos adicionados</h3><p className="muted">{money(packageAmountCents / 100)} adicionados ao saldo.</p><button className="primary-btn" data-testid="button-topup-finish" onClick={() => setSheet(null)}>Voltar ao leilão</button></div>}
-            <p className="fine">Tempo restante no leilão: {timeLabel(remaining)}</p>
           </div>}
           {sheet === 'win' && <div>
             {selectedWin ? <div>
