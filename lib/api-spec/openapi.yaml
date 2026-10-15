@@ -154,6 +154,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /account/wins/{winId}/pix-key:
+    patch:
+      operationId: updateAccountWinPixKey
+      tags: [account]
+      summary: Update the Pix key for an unpaid account win
+      parameters:
+        - name: winId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountWithdrawalInput"
+      responses:
+        "200":
+          description: Updated account state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentAccount"
+        "400":
+          description: Invalid Pix key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Account is signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Win not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Pix key cannot be changed before a request or after payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /account/wins/{winId}/advance-withdrawal:
     post:
       operationId: advanceAccountWithdrawal

@@ -178,6 +178,46 @@ export const RequestAccountWithdrawalResponse = zod.object({
 
 
 /**
+ * @summary Update the Pix key for an unpaid account win
+ */
+export const UpdateAccountWinPixKeyParams = zod.object({
+  "winId": zod.coerce.number().int()
+})
+
+export const updateAccountWinPixKeyBodyPixKeyMax = 254;
+
+
+
+export const UpdateAccountWinPixKeyBody = zod.object({
+  "pixType": zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),
+  "pixKey": zod.string().min(1).max(updateAccountWinPixKeyBodyPixKeyMax)
+})
+
+export const UpdateAccountWinPixKeyResponse = zod.object({
+  "signedIn": zod.boolean(),
+  "email": zod.string().email().nullable(),
+  "creditsCents": zod.number().int(),
+  "topUpOptionsCents": zod.array(zod.number().int()),
+  "transactions": zod.array(zod.object({
+  "id": zod.number().int(),
+  "label": zod.string(),
+  "amountCents": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})),
+  "wins": zod.array(zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
  * @summary Advance the withdrawal status for an account win
  */
 export const AdvanceAccountWithdrawalParams = zod.object({

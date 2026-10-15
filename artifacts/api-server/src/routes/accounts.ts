@@ -9,6 +9,9 @@ import {
   RequestAccountWithdrawalParams,
   RequestAccountWithdrawalResponse,
   SignOutAccountResponse,
+  UpdateAccountWinPixKeyBody,
+  UpdateAccountWinPixKeyParams,
+  UpdateAccountWinPixKeyResponse,
   UpdateAccountProfileBody,
   UpdateAccountProfileResponse,
 } from "@workspace/api-zod";
@@ -19,6 +22,7 @@ import {
   getCurrentAccount,
   requestAccountWithdrawal,
   signOutAccount,
+  updateAccountWinPixKey,
   updateAccountProfile,
 } from "../lib/accounts";
 import { getSessionAccount } from "../middleware/anonymous-session";
@@ -106,6 +110,26 @@ router.post("/account/wins/:winId/withdrawal", async (req, res): Promise<void> =
       body.data.pixKey,
     );
     res.json(RequestAccountWithdrawalResponse.parse(account));
+  } catch (error) {
+    respondWithAccountError(req, res, error);
+  }
+});
+
+router.patch("/account/wins/:winId/pix-key", async (req, res): Promise<void> => {
+  const params = UpdateAccountWinPixKeyParams.safeParse(req.params);
+  const body = UpdateAccountWinPixKeyBody.safeParse(req.body);
+  if (!params.success || !body.success) {
+    res.status(400).json({ error: "Informe uma chave Pix válida." });
+    return;
+  }
+  try {
+    const account = await updateAccountWinPixKey(
+      getSessionAccount(res).id,
+      params.data.winId,
+      body.data.pixType,
+      body.data.pixKey,
+    );
+    res.json(UpdateAccountWinPixKeyResponse.parse(account));
   } catch (error) {
     respondWithAccountError(req, res, error);
   }

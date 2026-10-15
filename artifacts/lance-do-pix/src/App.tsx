@@ -13,6 +13,7 @@ import {
   useRequestAccountWithdrawal,
   useResetDemoAuction,
   useSignOutAccount,
+  useUpdateAccountWinPixKey,
   useUpdateAccountProfile,
   type AccountTopUpInput,
   type AccountWinWithdrawalStatus,
@@ -56,6 +57,7 @@ function Home() {
   const signOutMutation = useSignOutAccount();
   const topUpMutation = useCreateAccountTopUp();
   const withdrawalMutation = useRequestAccountWithdrawal();
+  const updateWinPixKeyMutation = useUpdateAccountWinPixKey();
   const advanceWithdrawalMutation = useAdvanceAccountWithdrawal();
   const auction = auctionQuery.data;
   const remaining = auction?.remainingSeconds ?? 60;
@@ -73,9 +75,11 @@ function Home() {
   const isOwnLatestBid = auction?.isCurrentUserLastBid ?? false;
   const winningBidId = auction?.bids.at(-1)?.id ?? null;
   const currentWin = account?.wins.find((win) => win.winningBidId === winningBidId) ?? null;
-  const [sheet, setSheet] = useState<'account' | 'topup' | 'signin' | 'win' | 'rules' | null>(null);
+  const [sheet, setSheet] = useState<'account' | 'topup' | 'signin' | 'win' | 'withdrawal' | 'rules' | null>(null);
   const [selectedWinId, setSelectedWinId] = useState<number | null>(null);
-  const selectedWin = account?.wins.find((win) => win.id === selectedWinId) ?? currentWin;
+  const selectedWin = selectedWinId === null
+    ? currentWin
+    : account?.wins.find((win) => win.id === selectedWinId) ?? null;
   const [topupStep, setTopupStep] = useState<1 | 2 | 3>(1);
   const [packageAmountCents, setPackageAmountCents] = useState(10_000);
   const [bidInput, setBidInput] = useState('');
@@ -83,6 +87,7 @@ function Home() {
   const [emailInput, setEmailInput] = useState('marina@email.com');
   const [pixType, setPixType] = useState<PixKeyType>('CPF');
   const [pixInput, setPixInput] = useState('');
+  const [isEditingPixKey, setIsEditingPixKey] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       const savedTheme = localStorage.getItem('lance-do-pix-theme');
@@ -237,9 +242,28 @@ function Home() {
     }, {
       onSuccess: (updatedAccount) => {
         queryClient.setQueryData(getGetCurrentAccountQueryKey(), updatedAccount);
+        setPixInput('');
+        setIsEditingPixKey(false);
+        setNotice('');
         setAnnouncement('Solicitação de resgate registrada.');
       },
       onError: (error) => setNotice(errorMessage(error, 'Não foi possível solicitar o resgate.')),
+    });
+  }
+  function updatePixKey() {
+    if (!selectedWin) return;
+    updateWinPixKeyMutation.mutate({
+      winId: selectedWin.id,
+      data: { pixType, pixKey: pixInput },
+    }, {
+      onSuccess: (updatedAccount) => {
+        queryClient.setQueryData(getGetCurrentAccountQueryKey(), updatedAccount);
+        setIsEditingPixKey(false);
+        setPixInput('');
+        setNotice('');
+        setAnnouncement('Chave Pix atualizada.');
+      },
+      onError: (error) => setNotice(errorMessage(error, 'Não foi possível alterar a chave Pix.')),
     });
   }
   function advanceWithdrawal() {
@@ -270,9 +294,14 @@ function Home() {
       },
     });
   }
-  function openWin(winId: number) {
+  function openWithdrawal(winId: number) {
+    const win = account?.wins.find((item) => item.id === winId);
     setSelectedWinId(winId);
-    setSheet('win');
+    setPixType(win?.pixType ?? 'CPF');
+    setPixInput('');
+    setIsEditingPixKey(false);
+    setNotice('');
+    setSheet('withdrawal');
   }
 
   return (
@@ -333,7 +362,7 @@ function Home() {
       {sheet && <div className="overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSheet(null); }} role="presentation">
         <section className="sheet" role="dialog" aria-modal="true" aria-labelledby="dialog-title" data-testid={`dialog-${sheet}`}>
           <div className="sheet-head">
-            <h2 id="dialog-title">{sheet === 'account' ? 'Minha conta' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entrar para dar lances' : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
+            <h2 id="dialog-title">{sheet === 'account' ? 'Minha conta' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entrar para dar lances' : sheet === 'withdrawal' ? 'Resgate do prêmio' : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div>
           {sheet === 'account' && <div>
@@ -342,7 +371,7 @@ function Home() {
               <div className="credit-card"><div><span className="muted">Créditos</span><strong data-testid="value-account-credits">{money(credits)}</strong></div><button className="primary-btn" style={{ width: 'auto' }} data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button></div>
               <h3 className="sheet-section">Meus leilões</h3>
               <ul className="list" data-testid="list-auction-history">
-                {account?.wins.length ? account.wins.map((win) => <li className="list-row" key={win.id}><span>Leilão<small>Prêmio {money((win.prizeCents + win.bonusCents) / 100)}</small></span><button className="secondary-btn" data-testid={win.withdrawalStatus === 'available' ? 'button-history-redeem' : 'button-history-status'} onClick={() => openWin(win.id)}>{win.withdrawalStatus === 'available' ? 'Resgatar' : withdrawalLabels[win.withdrawalStatus]}</button></li>) : <li className="no-items">Nenhum leilão encerrado.</li>}
+                {account?.wins.length ? account.wins.map((win) => <li className="list-row" key={win.id}><span>Leilão<small>Prêmio {money((win.prizeCents + win.bonusCents) / 100)}</small></span><button className="secondary-btn" data-testid={win.withdrawalStatus === 'available' ? 'button-history-redeem' : 'button-history-status'} onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'available' ? 'Resgatar' : withdrawalLabels[win.withdrawalStatus]}</button></li>) : <li className="no-items">Nenhum leilão encerrado.</li>}
                 {auction && status !== 'closed' && <li className="list-row"><span>Leilão<small>Prêmio {money(auction.prizeCents / 100)}</small></span><span className="demo-tag">Em andamento</span></li>}
               </ul>
               <h3 className="sheet-section">Movimentações</h3>
@@ -366,11 +395,19 @@ function Home() {
             {topupStep === 3 && <div style={{ textAlign: 'center' }}><div style={{ margin: '14px auto', width: 58, height: 58, borderRadius: 50, display: 'grid', placeItems: 'center', background: 'hsl(var(--primary))' }}><Check /></div><h3>Créditos adicionados</h3><p className="muted">{money(packageAmountCents / 100)} adicionados ao saldo.</p><button className="primary-btn" data-testid="button-topup-finish" onClick={() => setSheet(null)}>Voltar ao leilão</button></div>}
           </div>}
           {sheet === 'win' && <div>
-            {selectedWin ? <div>
+            <div style={{ display: 'grid', placeItems: 'center', margin: '6px auto 12px', width: 58, height: 58, borderRadius: '50%', background: 'hsl(var(--primary)/.14)', color: 'hsl(var(--primary))' }}><Trophy /></div>
+            <p className="muted">Parabéns! Você venceu este leilão.</p>
+            {selectedWin ? <>
+              <div className="summary"><div className="summary-row"><span>Prêmio</span><strong>{money(selectedWin.prizeCents / 100)}</strong></div>{selectedWin.bonusCents > 0 && <div className="summary-row"><span>Bônus</span><strong>{money(selectedWin.bonusCents / 100)}</strong></div>}<div className="summary-row total"><span>Total</span><strong>{money((selectedWin.prizeCents + selectedWin.bonusCents) / 100)}</strong></div></div>
+              <p className="muted">O resgate do prêmio é feito por Pix.</p>
+              <button className="primary-btn" data-testid="button-open-win-withdrawal" onClick={() => openWithdrawal(selectedWin.id)}>Resgatar</button>
+            </> : <p className="muted" role="status">Confirmando os dados do prêmio…</p>}
+          </div>}
+          {sheet === 'withdrawal' && <div>
+            {selectedWin ? <>
+              <div className="summary"><div className="summary-row"><span>Prêmio</span><strong>{money(selectedWin.prizeCents / 100)}</strong></div>{selectedWin.bonusCents > 0 && <div className="summary-row"><span>Bônus</span><strong>{money(selectedWin.bonusCents / 100)}</strong></div>}<div className="summary-row total"><span>Total</span><strong>{money((selectedWin.prizeCents + selectedWin.bonusCents) / 100)}</strong></div></div>
               {selectedWin.withdrawalStatus === 'available' ? <>
-                <div style={{ display: 'grid', placeItems: 'center', margin: '6px auto 12px', width: 58, height: 58, borderRadius: '50%', background: 'hsl(var(--primary)/.14)', color: 'hsl(var(--primary))' }}><Trophy /></div>
-                <p className="muted">Lance vencedor.</p>
-                <div className="summary"><div className="summary-row"><span>Prêmio</span><strong>{money(selectedWin.prizeCents / 100)}</strong></div>{selectedWin.bonusCents > 0 && <div className="summary-row"><span>Bônus</span><strong>{money(selectedWin.bonusCents / 100)}</strong></div>}<div className="summary-row total"><span>Total</span><strong>{money((selectedWin.prizeCents + selectedWin.bonusCents) / 100)}</strong></div></div>
+                <p className="status-line" data-testid="status-withdrawal">Prêmio disponível para resgate</p>
                 <h3 className="sheet-section">Chave Pix de recebimento</h3><p className="muted">Informe uma chave Pix em seu nome para receber o prêmio.</p>
                 <div className="key-grid">{(['CPF', 'Celular', 'E-mail', 'Aleatória'] as PixKeyType[]).map((type) => <label className="key-choice" key={type}><input type="radio" name="pix-type" data-testid={`radio-pix-${type.toLowerCase()}`} checked={pixType === type} onChange={() => { setPixType(type); setPixInput(''); setNotice(''); }} /><span>{type}</span></label>)}</div>
                 <label htmlFor="pix-key" className="muted">Sua chave Pix</label><input id="pix-key" className="input-field" data-testid="input-pix-key" value={pixInput} placeholder={pixType === 'CPF' ? '000.000.000-00' : pixType === 'Celular' ? '(11) 99999-9999' : pixType === 'E-mail' ? 'voce@email.com' : 'Chave aleatória'} onChange={(event) => setPixInput(event.target.value)} />
@@ -378,14 +415,24 @@ function Home() {
                 <button className="primary-btn" data-testid="button-request-withdrawal" disabled={withdrawalMutation.isPending || !pixInput.trim()} onClick={startWithdrawal}>{withdrawalMutation.isPending ? 'Enviando…' : 'Confirmar resgate'}</button>
               </> : <>
                 <p className="status-line" data-testid="status-withdrawal">{withdrawalLabels[selectedWin.withdrawalStatus]}</p>
-                <p className="muted">Status do resgate para a chave {selectedWin.pixType ?? 'Pix'}: {selectedWin.maskedPixKey ?? '••••'}.</p>
+                <p className="muted">Chave Pix cadastrada ({selectedWin.pixType ?? 'Pix'}): {selectedWin.maskedPixKey ?? '••••'}.</p>
+                {selectedWin.withdrawalStatus !== 'paid' && !isEditingPixKey && <button className="secondary-btn" style={{ width: '100%' }} data-testid="button-edit-pix-key" onClick={() => { setPixType(selectedWin.pixType ?? 'CPF'); setPixInput(''); setNotice(''); setIsEditingPixKey(true); }}>Alterar chave Pix</button>}
+                {isEditingPixKey && <>
+                  <h3 className="sheet-section">Nova chave Pix</h3>
+                  <p className="muted">Informe a nova chave. A alteração fica disponível até o pagamento do prêmio.</p>
+                  <div className="key-grid">{(['CPF', 'Celular', 'E-mail', 'Aleatória'] as PixKeyType[]).map((type) => <label className="key-choice" key={type}><input type="radio" name="pix-type" data-testid={`radio-pix-${type.toLowerCase()}`} checked={pixType === type} onChange={() => { setPixType(type); setPixInput(''); setNotice(''); }} /><span>{type}</span></label>)}</div>
+                  <label htmlFor="pix-key" className="muted">Nova chave Pix</label><input id="pix-key" className="input-field" data-testid="input-pix-key" value={pixInput} placeholder={pixType === 'CPF' ? '000.000.000-00' : pixType === 'Celular' ? '(11) 99999-9999' : pixType === 'E-mail' ? 'voce@email.com' : 'Chave aleatória'} onChange={(event) => setPixInput(event.target.value)} />
+                  {notice && <p className="hint error" role="alert">{notice}</p>}
+                  <button className="primary-btn" data-testid="button-save-pix-key" disabled={updateWinPixKeyMutation.isPending || !pixInput.trim()} onClick={updatePixKey}>{updateWinPixKeyMutation.isPending ? 'Salvando…' : 'Salvar nova chave'}</button>
+                  <button className="reset" data-testid="button-cancel-pix-key" onClick={() => { setIsEditingPixKey(false); setPixInput(''); setPixType(selectedWin.pixType ?? 'CPF'); setNotice(''); }}>Cancelar</button>
+                </>}
                 <ol className="timeline" data-testid="list-withdrawal-timeline">{(['requested', 'under_review', 'paid'] as AccountWinWithdrawalStatus[]).map((status) => {
                   const order: AccountWinWithdrawalStatus[] = ['requested', 'under_review', 'paid'];
                   return <li key={status} className={order.indexOf(status) <= order.indexOf(selectedWin.withdrawalStatus) ? 'done' : ''} data-testid={`status-withdrawal-${status.replace('_', '-')}`}>{withdrawalLabels[status]}</li>;
                 })}</ol>
                 {selectedWin.withdrawalStatus !== 'paid' && <button className="secondary-btn" style={{ width: '100%' }} data-testid="button-simulate-withdrawal-status" onClick={advanceWithdrawal} disabled={advanceWithdrawalMutation.isPending}>{advanceWithdrawalMutation.isPending ? 'Atualizando…' : 'Avançar status'}</button>}
               </>}
-            </div> : <p className="muted" role="status">Você venceu! Confirmando os dados do prêmio…</p>}
+            </> : <p className="muted" role="status">Carregando os dados do resgate…</p>}
           </div>}
         </section>
       </div>}

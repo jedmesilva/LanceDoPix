@@ -281,6 +281,61 @@ export function requestAccountWithdrawal(
   });
 }
 
+export function updateAccountWinPixKey(
+  accountId: string,
+  winId: number,
+  pixType: PixKeyType,
+  pixKey: string,
+): Promise<CurrentAccountState> {
+  return withTransaction(async (client) => {
+    const accountResult = await client.query<AccountRow>(
+      `SELECT email, signed_in, credits_cents
+       FROM anonymous_accounts
+       WHERE id = $1
+       FOR UPDATE`,
+      [accountId],
+    );
+    const account = accountResult.rows[0];
+    if (!account) throw new Error("The anonymous account was not found.");
+    requireSignedIn(account);
+
+    if (!isValidPixKey(pixType, pixKey)) {
+      throw new AccountActionError("Informe uma chave Pix válida.", 400);
+    }
+
+    const winResult = await client.query<{
+      withdrawal_status: WinRow["withdrawal_status"];
+      pix_key: string | null;
+    }>(
+      `SELECT withdrawal_status, pix_key
+       FROM demo_auction_wins
+       WHERE id = $1 AND account_id = $2
+       FOR UPDATE`,
+      [winId, accountId],
+    );
+    const win = winResult.rows[0];
+    if (!win) throw new AccountActionError("Prêmio não encontrado.", 404);
+    if (
+      win.withdrawal_status === "available" ||
+      win.withdrawal_status === "paid" ||
+      !win.pix_key
+    ) {
+      throw new AccountActionError(
+        "A chave Pix só pode ser alterada após solicitar o resgate e antes do pagamento.",
+        409,
+      );
+    }
+
+    await client.query(
+      `UPDATE demo_auction_wins
+       SET pix_type = $3, pix_key = $4, updated_at = NOW()
+       WHERE id = $1 AND account_id = $2`,
+      [winId, accountId, pixType, pixKey.trim()],
+    );
+    return readAccount(client, accountId);
+  });
+}
+
 export function advanceAccountWithdrawal(
   accountId: string,
   winId: number,

@@ -552,6 +552,95 @@ export const useRequestAccountWithdrawal = <TError = ErrorType<ApiError>,
       return useMutation(getRequestAccountWithdrawalMutationOptions(options));
     }
 
+export const getUpdateAccountWinPixKeyUrl = (winId: number,) => {
+
+
+
+
+  return `/api/account/wins/${winId}/pix-key`
+}
+
+/**
+ * @summary Update the Pix key for an unpaid account win
+ */
+export const updateAccountWinPixKey = async (winId: number,
+    accountWithdrawalInput: AccountWithdrawalInput, options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CurrentAccount>(getUpdateAccountWinPixKeyUrl(winId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountWithdrawalInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAccountWinPixKeyMutationKey = () => ['updateAccountWinPixKey'] as const;
+
+export const getUpdateAccountWinPixKeyMutationOptions = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccountWinPixKey>>, TError,UpdateAccountWinPixKeyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAccountWinPixKey>>, TError,UpdateAccountWinPixKeyMutationVariables, TContext> => {
+
+const mutationKey = getUpdateAccountWinPixKeyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccountWinPixKey>>, UpdateAccountWinPixKeyMutationVariables> = (props) => {
+          const {winId,data} = props ?? {};
+
+          return  updateAccountWinPixKey(winId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAccountWinPixKeyMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccountWinPixKey>>>
+    export type UpdateAccountWinPixKeyMutationBody = BodyType<AccountWithdrawalInput>
+    export type UpdateAccountWinPixKeyMutationError = ErrorType<ApiError>
+    export type UpdateAccountWinPixKeyMutationVariables = {winId: number;data: BodyType<AccountWithdrawalInput>}
+
+    /**
+ * @summary Update the Pix key for an unpaid account win
+ */
+export const useUpdateAccountWinPixKey = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccountWinPixKey>>, TError,UpdateAccountWinPixKeyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAccountWinPixKey>>,
+        TError,
+        UpdateAccountWinPixKeyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateAccountWinPixKeyMutationOptions(options));
+    }
+
 export const getAdvanceAccountWithdrawalUrl = (winId: number,) => {
 
 
