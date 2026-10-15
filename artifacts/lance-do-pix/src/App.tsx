@@ -436,8 +436,8 @@ function Home() {
                 <button className="ghost-btn" data-testid="button-cancel-withdrawal" style={{ width: '100%', marginTop: 8 }} onClick={() => setSheet(null)}>Cancelar</button>
               </> : <>
                 <p className="muted">{selectedWin.maskedPixKey ? 'Escolha o tipo e informe a nova chave que vai receber o prêmio.' : 'Escolha o tipo e informe a chave que vai receber o prêmio.'}</p>
-                {renderPixKeyFields(selectedWin.maskedPixKey ? 'Nova chave Pix' : 'Sua chave Pix')}
                 <p className="muted pix-key-note" id="pix-key-owner-note">A chave precisa estar no seu nome.</p>
+                {renderPixKeyFields(selectedWin.maskedPixKey ? 'Nova chave Pix' : 'Sua chave Pix')}
                 {notice && <p className="hint error" role="alert">{notice}</p>}
                 <button className="primary-btn" data-testid="button-save-pix-key" disabled={updateWinPixKeyMutation.isPending || !validPix(pixType, pixInput)} onClick={updatePixKey}>{updateWinPixKeyMutation.isPending ? 'Salvando…' : 'Salvar chave'}</button>
                 <button className="ghost-btn" data-testid="button-cancel-pix-key" style={{ width: '100%', marginTop: 8 }} onClick={() => { setIsEditingPixKey(false); setPixInput(''); setPixType(selectedWin.pixType ?? 'CPF'); setNotice(''); if (!selectedWin.maskedPixKey) setSheet(null); }}>{selectedWin.maskedPixKey ? 'Voltar' : 'Cancelar'}</button>

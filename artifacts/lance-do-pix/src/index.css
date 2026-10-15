@@ -130,7 +130,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .demo-code code { font: 11px var(--app-font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .qr-demo { width: 156px; height: 156px; margin: 16px auto; background: repeating-conic-gradient(#14221d 0% 25%, #fff 0% 50%) 0 0 / 13px 13px; border: 9px solid white; border-radius: 7px; position: relative; opacity: .7; }
 .input-field { width: 100%; height: 50px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--background)); padding: 0 14px; margin: 8px 0 12px; color: hsl(var(--foreground)); }
-.pix-key-note { margin: 0 0 18px; font-size: 12px; line-height: 1.5; }
+.pix-key-note { margin: 4px 0 0; font-size: 12px; line-height: 1.5; }
 .key-choice { position: relative; }
 .key-choice input { position: absolute; opacity: 0; }
 .key-choice span { height: 48px; border: 1px solid hsl(var(--border)); border-radius: 12px; display: grid; place-items: center; cursor: pointer; font-weight: 700; }
