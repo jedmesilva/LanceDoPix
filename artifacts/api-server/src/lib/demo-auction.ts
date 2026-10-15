@@ -1,4 +1,5 @@
 import { pool } from "@workspace/db";
+import { resetAccountInTransaction } from "./accounts";
 
 const connectClient = () => pool.connect();
 type PoolClient = Awaited<ReturnType<typeof connectClient>>;
@@ -35,25 +36,27 @@ type BidRow = {
 
 type DemoAuctionBid = {
   id: number;
-  bidderId: string;
   bidderName: string;
   amountCents: number;
   createdAt: Date;
+  isCurrentUser: boolean;
 };
 
 type DemoAuctionState = {
   id: string;
   prizeCents: number;
   currentBidCents: number;
+  minimumBidCents: number;
+  suggestedBidIncrementsCents: number[];
   bonusCents: number;
   remainingSeconds: number;
   status: "live" | "urgent" | "closed";
-  lastBidderId: string | null;
+  isCurrentUserLastBid: boolean;
   bids: DemoAuctionBid[];
 };
 
 export class AuctionConflictError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly statusCode: 402 | 403 | 409 = 409) {
     super(message);
     this.name = "AuctionConflictError";
   }
@@ -125,12 +128,46 @@ async function lockAuction(client: PoolClient, now: Date): Promise<AuctionRow> {
   return auction;
 }
 
+async function recordClosedAuctionWinner(
+  client: PoolClient,
+  auction: AuctionRow,
+): Promise<void> {
+  if (auction.status !== "closed" || auction.last_bidder_id === "demo-seed") return;
+  const latestBidResult = await client.query<{ id: number; bidder_id: string }>(
+    `SELECT id, bidder_id
+     FROM demo_auction_bids
+     WHERE auction_id = $1
+     ORDER BY id DESC
+     LIMIT 1`,
+    [auction.id],
+  );
+  const latestBid = latestBidResult.rows[0];
+  if (!latestBid || latestBid.bidder_id !== auction.last_bidder_id) return;
+
+  await client.query(
+    `INSERT INTO demo_auction_wins
+       (auction_id, winning_bid_id, account_id, prize_cents, bonus_cents)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (winning_bid_id) DO NOTHING`,
+    [
+      auction.id,
+      latestBid.id,
+      latestBid.bidder_id,
+      auction.prize_cents,
+      auction.bonus_cents,
+    ],
+  );
+}
+
 async function applyElapsedTime(
   client: PoolClient,
   auction: AuctionRow,
   now: Date,
 ): Promise<AuctionRow> {
-  if (auction.status === "closed") return auction;
+  if (auction.status === "closed") {
+    await recordClosedAuctionWinner(client, auction);
+    return auction;
+  }
 
   const nowMs = now.getTime();
   const endsAtMs = auction.ends_at.getTime();
@@ -177,10 +214,16 @@ async function applyElapsedTime(
   );
   const updated = result.rows[0];
   if (!updated) throw new Error("The demonstration auction state was not updated.");
+  if (updated.status === "closed") {
+    await recordClosedAuctionWinner(client, updated);
+  }
   return updated;
 }
 
-async function getRecentBids(client: PoolClient): Promise<DemoAuctionBid[]> {
+async function getRecentBids(
+  client: PoolClient,
+  accountId: string,
+): Promise<DemoAuctionBid[]> {
   const result = await client.query<BidRow>(
     `SELECT id, bidder_id, bidder_name, amount_cents, created_at
      FROM demo_auction_bids
@@ -192,10 +235,10 @@ async function getRecentBids(client: PoolClient): Promise<DemoAuctionBid[]> {
 
   return result.rows.reverse().map((bid) => ({
     id: bid.id,
-    bidderId: bid.bidder_id,
     bidderName: bid.bidder_name,
     amountCents: bid.amount_cents,
     createdAt: bid.created_at,
+    isCurrentUser: bid.bidder_id === accountId,
   }));
 }
 
@@ -203,6 +246,7 @@ function toAuctionState(
   auction: AuctionRow,
   bids: DemoAuctionBid[],
   now: Date,
+  accountId: string,
 ): DemoAuctionState {
   const remainingSeconds =
     auction.status === "closed"
@@ -213,6 +257,8 @@ function toAuctionState(
     id: auction.id,
     prizeCents: auction.prize_cents,
     currentBidCents: auction.current_bid_cents,
+    minimumBidCents: auction.current_bid_cents + MIN_INCREMENT_CENTS,
+    suggestedBidIncrementsCents: [5_000, 10_000, 20_000],
     bonusCents: auction.bonus_cents,
     remainingSeconds,
     status:
@@ -221,24 +267,23 @@ function toAuctionState(
         : remainingSeconds <= 10
           ? "urgent"
           : "live",
-    lastBidderId: auction.last_bidder_id,
+    isCurrentUserLastBid: auction.last_bidder_id === accountId,
     bids,
   };
 }
 
-export async function getDemoAuction(): Promise<DemoAuctionState> {
+export async function getDemoAuction(accountId: string): Promise<DemoAuctionState> {
   return withTransaction(async (client) => {
     const now = new Date();
     let auction = await lockAuction(client, now);
     auction = await applyElapsedTime(client, auction, now);
-    const bids = await getRecentBids(client);
-    return toAuctionState(auction, bids, now);
+    const bids = await getRecentBids(client, accountId);
+    return toAuctionState(auction, bids, now, accountId);
   });
 }
 
 export async function placeDemoAuctionBid(input: {
-  bidderId: string;
-  bidderName: string;
+  accountId: string;
   amountCents: number;
 }): Promise<DemoAuctionState> {
   return withTransaction(async (client) => {
@@ -252,9 +297,34 @@ export async function placeDemoAuctionBid(input: {
     const minimumBidCents = auction.current_bid_cents + MIN_INCREMENT_CENTS;
     if (input.amountCents < minimumBidCents) {
       throw new AuctionConflictError(
-        `O lance mínimo é R$ ${(minimumBidCents / 100).toFixed(2)}.`,
+        `O lance mínimo é ${new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(minimumBidCents / 100)}.`,
       );
     }
+
+    const accountResult = await client.query<{
+      email: string | null;
+      signed_in: boolean;
+      credits_cents: number;
+    }>(
+      `SELECT email, signed_in, credits_cents
+       FROM anonymous_accounts
+       WHERE id = $1
+       FOR UPDATE`,
+      [input.accountId],
+    );
+    const account = accountResult.rows[0];
+    if (!account) throw new Error("The anonymous account was not found.");
+    if (!account.signed_in) {
+      throw new AuctionConflictError("Entre para dar um lance.", 403);
+    }
+    if (account.credits_cents < input.amountCents) {
+      throw new AuctionConflictError("Saldo insuficiente. Adicione créditos para continuar.", 402);
+    }
+    const bidderName =
+      account.email?.split("@")[0].slice(0, 40) || "Participante";
 
     const endsAt = new Date(now.getTime() + TIMER_MS);
     await client.query(
@@ -263,11 +333,22 @@ export async function placeDemoAuctionBid(input: {
        VALUES ($1, $2, $3, $4, $5)`,
       [
         AUCTION_ID,
-        input.bidderId,
-        input.bidderName.trim(),
+        input.accountId,
+        bidderName,
         input.amountCents,
         now,
       ],
+    );
+    await client.query(
+      `UPDATE anonymous_accounts
+       SET credits_cents = credits_cents - $2, updated_at = NOW()
+       WHERE id = $1`,
+      [input.accountId, input.amountCents],
+    );
+    await client.query(
+      `INSERT INTO account_transactions (account_id, label, amount_cents, created_at)
+       VALUES ($1, 'Lance no leilão', $2, $3)`,
+      [input.accountId, -input.amountCents, now],
     );
     const updatedResult = await client.query<AuctionRow>(
       `UPDATE demo_auctions
@@ -285,23 +366,24 @@ export async function placeDemoAuctionBid(input: {
         AUCTION_ID,
         input.amountCents,
         endsAt,
-        input.bidderId,
-        input.bidderName.trim(),
+        input.accountId,
+        bidderName,
         now,
       ],
     );
     const updated = updatedResult.rows[0];
     if (!updated) throw new Error("The demonstration bid was not recorded.");
 
-    const bids = await getRecentBids(client);
-    return toAuctionState(updated, bids, now);
+    const bids = await getRecentBids(client, input.accountId);
+    return toAuctionState(updated, bids, now, input.accountId);
   });
 }
 
-export async function resetDemoAuction(): Promise<DemoAuctionState> {
+export async function resetDemoAuction(accountId: string): Promise<DemoAuctionState> {
   return withTransaction(async (client) => {
     const now = new Date();
     let auction = await lockAuction(client, now);
+    await resetAccountInTransaction(client, accountId);
     await client.query("DELETE FROM demo_auction_bids WHERE auction_id = $1", [
       AUCTION_ID,
     ]);
@@ -343,7 +425,7 @@ export async function resetDemoAuction(): Promise<DemoAuctionState> {
     );
 
     auction = updated;
-    const bids = await getRecentBids(client);
-    return toAuctionState(auction, bids, now);
+    const bids = await getRecentBids(client, accountId);
+    return toAuctionState(auction, bids, now, accountId);
   });
 }

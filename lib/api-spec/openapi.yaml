@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: account
+    description: Anonymous account operations
   - name: auction
     description: Demonstration auction operations
 paths:
@@ -26,6 +28,162 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /account/current:
+    get:
+      operationId: getCurrentAccount
+      tags: [account]
+      summary: Get the current anonymous account
+      responses:
+        "200":
+          description: Current account state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentAccount"
+  /account/profile:
+    post:
+      operationId: updateAccountProfile
+      tags: [account]
+      summary: Set the email shown on the current anonymous account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountProfileInput"
+      responses:
+        "200":
+          description: Updated account state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentAccount"
+        "400":
+          description: Invalid email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /account/sign-out:
+    post:
+      operationId: signOutAccount
+      tags: [account]
+      summary: Sign out of the current account view
+      responses:
+        "200":
+          description: Updated account state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentAccount"
+  /account/top-ups:
+    post:
+      operationId: createAccountTopUp
+      tags: [account]
+      summary: Add a supported credit package to the current account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountTopUpInput"
+      responses:
+        "200":
+          description: Updated account state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentAccount"
+        "400":
+          description: Unsupported top-up amount
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Account is signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /account/wins/{winId}/withdrawal:
+    post:
+      operationId: requestAccountWithdrawal
+      tags: [account]
+      summary: Request a withdrawal for an account win
+      parameters:
+        - name: winId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountWithdrawalInput"
+      responses:
+        "200":
+          description: Updated account state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentAccount"
+        "400":
+          description: Invalid Pix key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Account is signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Win not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Withdrawal was already requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /account/wins/{winId}/advance-withdrawal:
+    post:
+      operationId: advanceAccountWithdrawal
+      tags: [account]
+      summary: Advance the withdrawal status for an account win
+      parameters:
+        - name: winId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated account state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentAccount"
+        "404":
+          description: Win not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "409":
+          description: Withdrawal cannot advance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /auctions/demo/current:
     get:
       operationId: getDemoAuction
@@ -62,6 +220,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DemoAuctionError"
+        "402":
+          description: Account has insufficient credits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoAuctionError"
+        "403":
+          description: Account is signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoAuctionError"
         "409":
           description: Auction closed or bid below the minimum
           content:
@@ -89,13 +259,113 @@ components:
           type: string
       required:
         - status
+    AccountProfileInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+      required: [email]
+    AccountTopUpInput:
+      type: object
+      properties:
+        amountCents:
+          type: integer
+          enum: [5000, 10000, 20000, 50000]
+      required: [amountCents]
+    PixKeyType:
+      type: string
+      enum: [CPF, Celular, E-mail, Aleatória]
+    AccountWithdrawalInput:
+      type: object
+      properties:
+        pixType:
+          $ref: "#/components/schemas/PixKeyType"
+        pixKey:
+          type: string
+          minLength: 1
+          maxLength: 254
+      required: [pixType, pixKey]
+    AccountTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        amountCents:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, label, amountCents, createdAt]
+    AccountWin:
+      type: object
+      properties:
+        id:
+          type: integer
+        winningBidId:
+          type: integer
+        prizeCents:
+          type: integer
+        bonusCents:
+          type: integer
+        withdrawalStatus:
+          type: string
+          enum: [available, requested, under_review, paid]
+        pixType:
+          anyOf:
+            - $ref: "#/components/schemas/PixKeyType"
+            - type: "null"
+        maskedPixKey:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - winningBidId
+        - prizeCents
+        - bonusCents
+        - withdrawalStatus
+        - pixType
+        - maskedPixKey
+        - createdAt
+    CurrentAccount:
+      type: object
+      properties:
+        signedIn:
+          type: boolean
+        email:
+          type: ["string", "null"]
+          format: email
+        creditsCents:
+          type: integer
+        topUpOptionsCents:
+          type: array
+          items:
+            type: integer
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountTransaction"
+        wins:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountWin"
+      required:
+        - signedIn
+        - email
+        - creditsCents
+        - topUpOptionsCents
+        - transactions
+        - wins
     DemoAuctionBid:
       type: object
       properties:
         id:
           type: integer
-        bidderId:
-          type: string
         bidderName:
           type: string
         amountCents:
@@ -103,7 +373,9 @@ components:
         createdAt:
           type: string
           format: date-time
-      required: [id, bidderId, bidderName, amountCents, createdAt]
+        isCurrentUser:
+          type: boolean
+      required: [id, bidderName, amountCents, createdAt, isCurrentUser]
     DemoAuction:
       type: object
       properties:
@@ -113,6 +385,12 @@ components:
           type: integer
         currentBidCents:
           type: integer
+        minimumBidCents:
+          type: integer
+        suggestedBidIncrementsCents:
+          type: array
+          items:
+            type: integer
         bonusCents:
           type: integer
         remainingSeconds:
@@ -120,8 +398,8 @@ components:
         status:
           type: string
           enum: [live, urgent, closed]
-        lastBidderId:
-          type: [string, "null"]
+        isCurrentUserLastBid:
+          type: boolean
         bids:
           type: array
           items:
@@ -130,27 +408,27 @@ components:
         - id
         - prizeCents
         - currentBidCents
+        - minimumBidCents
+        - suggestedBidIncrementsCents
         - bonusCents
         - remainingSeconds
         - status
-        - lastBidderId
+        - isCurrentUserLastBid
         - bids
     DemoAuctionBidInput:
       type: object
       properties:
-        bidderId:
-          type: string
-          minLength: 8
-          maxLength: 128
-        bidderName:
-          type: string
-          minLength: 1
-          maxLength: 40
         amountCents:
           type: integer
           minimum: 1
-      required: [bidderId, bidderName, amountCents]
+      required: [amountCents]
     DemoAuctionError:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    ApiError:
       type: object
       properties:
         error:

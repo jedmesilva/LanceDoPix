@@ -11,12 +11,13 @@ import {
   placeDemoAuctionBid,
   resetDemoAuction,
 } from "../lib/demo-auction";
+import { getSessionAccount } from "../middleware/anonymous-session";
 
 const router: IRouter = Router();
 
 router.get("/auctions/demo/current", async (req, res): Promise<void> => {
   try {
-    const auction = await getDemoAuction();
+    const auction = await getDemoAuction(getSessionAccount(res).id);
     res.json(GetDemoAuctionResponse.parse(auction));
   } catch (error) {
     req.log.error({ err: error }, "Failed to load auction");
@@ -32,11 +33,14 @@ router.post("/auctions/demo/bids", async (req, res): Promise<void> => {
   }
 
   try {
-    const auction = await placeDemoAuctionBid(parsed.data);
+    const auction = await placeDemoAuctionBid({
+      accountId: getSessionAccount(res).id,
+      amountCents: parsed.data.amountCents,
+    });
     res.status(201).json(PlaceDemoAuctionBidResponse.parse(auction));
   } catch (error) {
     if (error instanceof AuctionConflictError) {
-      res.status(409).json({ error: error.message });
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     req.log.error({ err: error }, "Failed to place auction bid");
@@ -46,7 +50,7 @@ router.post("/auctions/demo/bids", async (req, res): Promise<void> => {
 
 router.post("/auctions/demo/reset", async (req, res): Promise<void> => {
   try {
-    const auction = await resetDemoAuction();
+    const auction = await resetDemoAuction(getSessionAccount(res).id);
     res.json(ResetDemoAuctionResponse.parse(auction));
   } catch (error) {
     req.log.error({ err: error }, "Failed to reset auction");

@@ -18,22 +18,215 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Get the current anonymous account
+ */
+export const GetCurrentAccountResponse = zod.object({
+  "signedIn": zod.boolean(),
+  "email": zod.string().email().nullable(),
+  "creditsCents": zod.number().int(),
+  "topUpOptionsCents": zod.array(zod.number().int()),
+  "transactions": zod.array(zod.object({
+  "id": zod.number().int(),
+  "label": zod.string(),
+  "amountCents": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})),
+  "wins": zod.array(zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Set the email shown on the current anonymous account
+ */
+export const updateAccountProfileBodyEmailMax = 254;
+
+
+
+export const UpdateAccountProfileBody = zod.object({
+  "email": zod.string().email().max(updateAccountProfileBodyEmailMax)
+})
+
+export const UpdateAccountProfileResponse = zod.object({
+  "signedIn": zod.boolean(),
+  "email": zod.string().email().nullable(),
+  "creditsCents": zod.number().int(),
+  "topUpOptionsCents": zod.array(zod.number().int()),
+  "transactions": zod.array(zod.object({
+  "id": zod.number().int(),
+  "label": zod.string(),
+  "amountCents": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})),
+  "wins": zod.array(zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Sign out of the current account view
+ */
+export const SignOutAccountResponse = zod.object({
+  "signedIn": zod.boolean(),
+  "email": zod.string().email().nullable(),
+  "creditsCents": zod.number().int(),
+  "topUpOptionsCents": zod.array(zod.number().int()),
+  "transactions": zod.array(zod.object({
+  "id": zod.number().int(),
+  "label": zod.string(),
+  "amountCents": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})),
+  "wins": zod.array(zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Add a supported credit package to the current account
+ */
+export const CreateAccountTopUpBody = zod.object({
+  "amountCents": zod.union([zod.literal(5000),zod.literal(10000),zod.literal(20000),zod.literal(50000)])
+})
+
+export const CreateAccountTopUpResponse = zod.object({
+  "signedIn": zod.boolean(),
+  "email": zod.string().email().nullable(),
+  "creditsCents": zod.number().int(),
+  "topUpOptionsCents": zod.array(zod.number().int()),
+  "transactions": zod.array(zod.object({
+  "id": zod.number().int(),
+  "label": zod.string(),
+  "amountCents": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})),
+  "wins": zod.array(zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Request a withdrawal for an account win
+ */
+export const RequestAccountWithdrawalParams = zod.object({
+  "winId": zod.coerce.number().int()
+})
+
+export const requestAccountWithdrawalBodyPixKeyMax = 254;
+
+
+
+export const RequestAccountWithdrawalBody = zod.object({
+  "pixType": zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),
+  "pixKey": zod.string().min(1).max(requestAccountWithdrawalBodyPixKeyMax)
+})
+
+export const RequestAccountWithdrawalResponse = zod.object({
+  "signedIn": zod.boolean(),
+  "email": zod.string().email().nullable(),
+  "creditsCents": zod.number().int(),
+  "topUpOptionsCents": zod.array(zod.number().int()),
+  "transactions": zod.array(zod.object({
+  "id": zod.number().int(),
+  "label": zod.string(),
+  "amountCents": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})),
+  "wins": zod.array(zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Advance the withdrawal status for an account win
+ */
+export const AdvanceAccountWithdrawalParams = zod.object({
+  "winId": zod.coerce.number().int()
+})
+
+export const AdvanceAccountWithdrawalResponse = zod.object({
+  "signedIn": zod.boolean(),
+  "email": zod.string().email().nullable(),
+  "creditsCents": zod.number().int(),
+  "topUpOptionsCents": zod.array(zod.number().int()),
+  "transactions": zod.array(zod.object({
+  "id": zod.number().int(),
+  "label": zod.string(),
+  "amountCents": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})),
+  "wins": zod.array(zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
  * @summary Get the current demonstration auction
  */
 export const GetDemoAuctionResponse = zod.object({
   "id": zod.string(),
   "prizeCents": zod.number().int(),
   "currentBidCents": zod.number().int(),
+  "minimumBidCents": zod.number().int(),
+  "suggestedBidIncrementsCents": zod.array(zod.number().int()),
   "bonusCents": zod.number().int(),
   "remainingSeconds": zod.number().int(),
   "status": zod.enum(['live', 'urgent', 'closed']),
-  "lastBidderId": zod.string().nullable(),
+  "isCurrentUserLastBid": zod.boolean(),
   "bids": zod.array(zod.object({
   "id": zod.number().int(),
-  "bidderId": zod.string(),
   "bidderName": zod.string(),
   "amountCents": zod.number().int(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "isCurrentUser": zod.boolean()
 }))
 })
 
@@ -41,17 +234,10 @@ export const GetDemoAuctionResponse = zod.object({
 /**
  * @summary Place a bid in the demonstration auction
  */
-export const placeDemoAuctionBidBodyBidderIdMin = 8;
-export const placeDemoAuctionBidBodyBidderIdMax = 128;
-
-export const placeDemoAuctionBidBodyBidderNameMax = 40;
-
 
 
 
 export const PlaceDemoAuctionBidBody = zod.object({
-  "bidderId": zod.string().min(placeDemoAuctionBidBodyBidderIdMin).max(placeDemoAuctionBidBodyBidderIdMax),
-  "bidderName": zod.string().min(1).max(placeDemoAuctionBidBodyBidderNameMax),
   "amountCents": zod.number().int().min(1)
 })
 
@@ -59,16 +245,18 @@ export const PlaceDemoAuctionBidResponse = zod.object({
   "id": zod.string(),
   "prizeCents": zod.number().int(),
   "currentBidCents": zod.number().int(),
+  "minimumBidCents": zod.number().int(),
+  "suggestedBidIncrementsCents": zod.array(zod.number().int()),
   "bonusCents": zod.number().int(),
   "remainingSeconds": zod.number().int(),
   "status": zod.enum(['live', 'urgent', 'closed']),
-  "lastBidderId": zod.string().nullable(),
+  "isCurrentUserLastBid": zod.boolean(),
   "bids": zod.array(zod.object({
   "id": zod.number().int(),
-  "bidderId": zod.string(),
   "bidderName": zod.string(),
   "amountCents": zod.number().int(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "isCurrentUser": zod.boolean()
 }))
 })
 
@@ -80,16 +268,18 @@ export const ResetDemoAuctionResponse = zod.object({
   "id": zod.string(),
   "prizeCents": zod.number().int(),
   "currentBidCents": zod.number().int(),
+  "minimumBidCents": zod.number().int(),
+  "suggestedBidIncrementsCents": zod.array(zod.number().int()),
   "bonusCents": zod.number().int(),
   "remainingSeconds": zod.number().int(),
   "status": zod.enum(['live', 'urgent', 'closed']),
-  "lastBidderId": zod.string().nullable(),
+  "isCurrentUserLastBid": zod.boolean(),
   "bids": zod.array(zod.object({
   "id": zod.number().int(),
-  "bidderId": zod.string(),
   "bidderName": zod.string(),
   "amountCents": zod.number().int(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "isCurrentUser": zod.boolean()
 }))
 })
 

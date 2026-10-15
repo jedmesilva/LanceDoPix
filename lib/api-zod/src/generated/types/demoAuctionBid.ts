@@ -8,8 +8,8 @@
 
 export interface DemoAuctionBid {
   id: number;
-  bidderId: string;
   bidderName: string;
   amountCents: number;
   createdAt: Date;
+  isCurrentUser: boolean;
 }

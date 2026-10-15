@@ -6,9 +6,19 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accountProfileInput';
+export * from './accountTopUpInput';
+export * from './accountTopUpInputAmountCents';
+export * from './accountTransaction';
+export * from './accountWin';
+export * from './accountWinWithdrawalStatus';
+export * from './accountWithdrawalInput';
+export * from './apiError';
+export * from './currentAccount';
 export * from './demoAuction';
 export * from './demoAuctionBid';
 export * from './demoAuctionBidInput';
 export * from './demoAuctionError';
 export * from './demoAuctionStatus';
 export * from './healthStatus';
+export * from './pixKeyType';

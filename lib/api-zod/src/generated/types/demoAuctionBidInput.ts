@@ -7,16 +7,6 @@
  */
 
 export interface DemoAuctionBidInput {
-  /**
-     * @minLength 8
-     * @maxLength 128
-     */
-  bidderId: string;
-  /**
-     * @minLength 1
-     * @maxLength 40
-     */
-  bidderName: string;
   /** @minimum 1 */
   amountCents: number;
 }

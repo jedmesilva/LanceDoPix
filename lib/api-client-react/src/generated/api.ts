@@ -20,6 +20,11 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccountProfileInput,
+  AccountTopUpInput,
+  AccountWithdrawalInput,
+  ApiError,
+  CurrentAccount,
   DemoAuction,
   DemoAuctionBidInput,
   DemoAuctionError,
@@ -130,6 +135,496 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+
+export const getGetCurrentAccountUrl = () => {
+
+
+
+
+  return `/api/account/current`
+}
+
+/**
+ * @summary Get the current anonymous account
+ */
+export const getCurrentAccount = async ( options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+
+  return customFetch<CurrentAccount>(getGetCurrentAccountUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCurrentAccountQueryKey = () => {
+    return [
+    `/api/account/current`
+    ] as const;
+    }
+
+
+export const getGetCurrentAccountQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentAccount>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentAccount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCurrentAccountQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentAccount>>> = ({ signal }) => getCurrentAccount({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCurrentAccount>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCurrentAccountQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentAccount>>>
+export type GetCurrentAccountQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the current anonymous account
+ */
+
+export function useGetCurrentAccount<TData = Awaited<ReturnType<typeof getCurrentAccount>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentAccount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCurrentAccountQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateAccountProfileUrl = () => {
+
+
+
+
+  return `/api/account/profile`
+}
+
+/**
+ * @summary Set the email shown on the current anonymous account
+ */
+export const updateAccountProfile = async (accountProfileInput: AccountProfileInput, options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CurrentAccount>(getUpdateAccountProfileUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountProfileInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAccountProfileMutationKey = () => ['updateAccountProfile'] as const;
+
+export const getUpdateAccountProfileMutationOptions = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccountProfile>>, TError,UpdateAccountProfileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAccountProfile>>, TError,UpdateAccountProfileMutationVariables, TContext> => {
+
+const mutationKey = getUpdateAccountProfileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccountProfile>>, UpdateAccountProfileMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateAccountProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAccountProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccountProfile>>>
+    export type UpdateAccountProfileMutationBody = BodyType<AccountProfileInput>
+    export type UpdateAccountProfileMutationError = ErrorType<ApiError>
+    export type UpdateAccountProfileMutationVariables = {data: BodyType<AccountProfileInput>}
+
+    /**
+ * @summary Set the email shown on the current anonymous account
+ */
+export const useUpdateAccountProfile = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccountProfile>>, TError,UpdateAccountProfileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAccountProfile>>,
+        TError,
+        UpdateAccountProfileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateAccountProfileMutationOptions(options));
+    }
+
+export const getSignOutAccountUrl = () => {
+
+
+
+
+  return `/api/account/sign-out`
+}
+
+/**
+ * @summary Sign out of the current account view
+ */
+export const signOutAccount = async ( options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+
+  return customFetch<CurrentAccount>(getSignOutAccountUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSignOutAccountMutationKey = () => ['signOutAccount'] as const;
+
+export const getSignOutAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signOutAccount>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof signOutAccount>>, TError,void, TContext> => {
+
+const mutationKey = getSignOutAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signOutAccount>>, void> = () => {
+
+
+          return  signOutAccount(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignOutAccountMutationResult = NonNullable<Awaited<ReturnType<typeof signOutAccount>>>
+
+    export type SignOutAccountMutationError = ErrorType<unknown>
+
+
+    /**
+ * @summary Sign out of the current account view
+ */
+export const useSignOutAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signOutAccount>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof signOutAccount>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSignOutAccountMutationOptions(options));
+    }
+
+export const getCreateAccountTopUpUrl = () => {
+
+
+
+
+  return `/api/account/top-ups`
+}
+
+/**
+ * @summary Add a supported credit package to the current account
+ */
+export const createAccountTopUp = async (accountTopUpInput: AccountTopUpInput, options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CurrentAccount>(getCreateAccountTopUpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountTopUpInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAccountTopUpMutationKey = () => ['createAccountTopUp'] as const;
+
+export const getCreateAccountTopUpMutationOptions = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccountTopUp>>, TError,CreateAccountTopUpMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAccountTopUp>>, TError,CreateAccountTopUpMutationVariables, TContext> => {
+
+const mutationKey = getCreateAccountTopUpMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAccountTopUp>>, CreateAccountTopUpMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAccountTopUp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAccountTopUpMutationResult = NonNullable<Awaited<ReturnType<typeof createAccountTopUp>>>
+    export type CreateAccountTopUpMutationBody = BodyType<AccountTopUpInput>
+    export type CreateAccountTopUpMutationError = ErrorType<ApiError>
+    export type CreateAccountTopUpMutationVariables = {data: BodyType<AccountTopUpInput>}
+
+    /**
+ * @summary Add a supported credit package to the current account
+ */
+export const useCreateAccountTopUp = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccountTopUp>>, TError,CreateAccountTopUpMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAccountTopUp>>,
+        TError,
+        CreateAccountTopUpMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateAccountTopUpMutationOptions(options));
+    }
+
+export const getRequestAccountWithdrawalUrl = (winId: number,) => {
+
+
+
+
+  return `/api/account/wins/${winId}/withdrawal`
+}
+
+/**
+ * @summary Request a withdrawal for an account win
+ */
+export const requestAccountWithdrawal = async (winId: number,
+    accountWithdrawalInput: AccountWithdrawalInput, options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CurrentAccount>(getRequestAccountWithdrawalUrl(winId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountWithdrawalInput)
+  }
+);}
+
+
+
+
+
+export const getRequestAccountWithdrawalMutationKey = () => ['requestAccountWithdrawal'] as const;
+
+export const getRequestAccountWithdrawalMutationOptions = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAccountWithdrawal>>, TError,RequestAccountWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestAccountWithdrawal>>, TError,RequestAccountWithdrawalMutationVariables, TContext> => {
+
+const mutationKey = getRequestAccountWithdrawalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestAccountWithdrawal>>, RequestAccountWithdrawalMutationVariables> = (props) => {
+          const {winId,data} = props ?? {};
+
+          return  requestAccountWithdrawal(winId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestAccountWithdrawalMutationResult = NonNullable<Awaited<ReturnType<typeof requestAccountWithdrawal>>>
+    export type RequestAccountWithdrawalMutationBody = BodyType<AccountWithdrawalInput>
+    export type RequestAccountWithdrawalMutationError = ErrorType<ApiError>
+    export type RequestAccountWithdrawalMutationVariables = {winId: number;data: BodyType<AccountWithdrawalInput>}
+
+    /**
+ * @summary Request a withdrawal for an account win
+ */
+export const useRequestAccountWithdrawal = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAccountWithdrawal>>, TError,RequestAccountWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestAccountWithdrawal>>,
+        TError,
+        RequestAccountWithdrawalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestAccountWithdrawalMutationOptions(options));
+    }
+
+export const getAdvanceAccountWithdrawalUrl = (winId: number,) => {
+
+
+
+
+  return `/api/account/wins/${winId}/advance-withdrawal`
+}
+
+/**
+ * @summary Advance the withdrawal status for an account win
+ */
+export const advanceAccountWithdrawal = async (winId: number, options?: Parameters<typeof customFetch>[1]): Promise<CurrentAccount> => {
+
+  return customFetch<CurrentAccount>(getAdvanceAccountWithdrawalUrl(winId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAdvanceAccountWithdrawalMutationKey = () => ['advanceAccountWithdrawal'] as const;
+
+export const getAdvanceAccountWithdrawalMutationOptions = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof advanceAccountWithdrawal>>, TError,AdvanceAccountWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof advanceAccountWithdrawal>>, TError,AdvanceAccountWithdrawalMutationVariables, TContext> => {
+
+const mutationKey = getAdvanceAccountWithdrawalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof advanceAccountWithdrawal>>, AdvanceAccountWithdrawalMutationVariables> = (props) => {
+          const {winId} = props ?? {};
+
+          return  advanceAccountWithdrawal(winId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdvanceAccountWithdrawalMutationResult = NonNullable<Awaited<ReturnType<typeof advanceAccountWithdrawal>>>
+
+    export type AdvanceAccountWithdrawalMutationError = ErrorType<ApiError>
+    export type AdvanceAccountWithdrawalMutationVariables = {winId: number}
+
+    /**
+ * @summary Advance the withdrawal status for an account win
+ */
+export const useAdvanceAccountWithdrawal = <TError = ErrorType<ApiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof advanceAccountWithdrawal>>, TError,AdvanceAccountWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof advanceAccountWithdrawal>>,
+        TError,
+        AdvanceAccountWithdrawalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAdvanceAccountWithdrawalMutationOptions(options));
+    }
 
 export const getGetDemoAuctionUrl = () => {
 

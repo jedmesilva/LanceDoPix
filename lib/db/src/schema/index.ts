@@ -18,3 +18,4 @@
 //   export type Post = typeof postsTable.$inferSelect;
 
 export * from "./demo-auctions";
+export * from "./anonymous-accounts";

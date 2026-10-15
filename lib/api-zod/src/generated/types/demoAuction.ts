@@ -12,10 +12,11 @@ export interface DemoAuction {
   id: string;
   prizeCents: number;
   currentBidCents: number;
+  minimumBidCents: number;
+  suggestedBidIncrementsCents: number[];
   bonusCents: number;
   remainingSeconds: number;
   status: DemoAuctionStatus;
-  /** @nullable */
-  lastBidderId: string | null;
+  isCurrentUserLastBid: boolean;
   bids: DemoAuctionBid[];
 }

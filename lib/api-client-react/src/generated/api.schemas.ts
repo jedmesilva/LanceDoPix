@@ -9,12 +9,89 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface AccountProfileInput {
+  /** @maxLength 254 */
+  email: string;
+}
+
+export type AccountTopUpInputAmountCents = typeof AccountTopUpInputAmountCents[keyof typeof AccountTopUpInputAmountCents];
+
+
+export const AccountTopUpInputAmountCents = {
+  NUMBER_5000: 5000,
+  NUMBER_10000: 10000,
+  NUMBER_20000: 20000,
+  NUMBER_50000: 50000,
+} as const;
+
+export interface AccountTopUpInput {
+  amountCents: AccountTopUpInputAmountCents;
+}
+
+export type PixKeyType = typeof PixKeyType[keyof typeof PixKeyType];
+
+
+export const PixKeyType = {
+  CPF: 'CPF',
+  Celular: 'Celular',
+  'E-mail': 'E-mail',
+  Aleatória: 'Aleatória',
+} as const;
+
+export interface AccountWithdrawalInput {
+  pixType: PixKeyType;
+  /**
+     * @minLength 1
+     * @maxLength 254
+     */
+  pixKey: string;
+}
+
+export interface AccountTransaction {
+  id: number;
+  label: string;
+  amountCents: number;
+  createdAt: string;
+}
+
+export type AccountWinWithdrawalStatus = typeof AccountWinWithdrawalStatus[keyof typeof AccountWinWithdrawalStatus];
+
+
+export const AccountWinWithdrawalStatus = {
+  available: 'available',
+  requested: 'requested',
+  under_review: 'under_review',
+  paid: 'paid',
+} as const;
+
+export interface AccountWin {
+  id: number;
+  winningBidId: number;
+  prizeCents: number;
+  bonusCents: number;
+  withdrawalStatus: AccountWinWithdrawalStatus;
+  pixType: PixKeyType | null;
+  /** @nullable */
+  maskedPixKey: string | null;
+  createdAt: string;
+}
+
+export interface CurrentAccount {
+  signedIn: boolean;
+  /** @nullable */
+  email: string | null;
+  creditsCents: number;
+  topUpOptionsCents: number[];
+  transactions: AccountTransaction[];
+  wins: AccountWin[];
+}
+
 export interface DemoAuctionBid {
   id: number;
-  bidderId: string;
   bidderName: string;
   amountCents: number;
   createdAt: string;
+  isCurrentUser: boolean;
 }
 
 export type DemoAuctionStatus = typeof DemoAuctionStatus[keyof typeof DemoAuctionStatus];
@@ -30,30 +107,25 @@ export interface DemoAuction {
   id: string;
   prizeCents: number;
   currentBidCents: number;
+  minimumBidCents: number;
+  suggestedBidIncrementsCents: number[];
   bonusCents: number;
   remainingSeconds: number;
   status: DemoAuctionStatus;
-  /** @nullable */
-  lastBidderId: string | null;
+  isCurrentUserLastBid: boolean;
   bids: DemoAuctionBid[];
 }
 
 export interface DemoAuctionBidInput {
-  /**
-     * @minLength 8
-     * @maxLength 128
-     */
-  bidderId: string;
-  /**
-     * @minLength 1
-     * @maxLength 40
-     */
-  bidderName: string;
   /** @minimum 1 */
   amountCents: number;
 }
 
 export interface DemoAuctionError {
+  error: string;
+}
+
+export interface ApiError {
   error: string;
 }
 
