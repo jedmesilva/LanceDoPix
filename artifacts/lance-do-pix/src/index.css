@@ -68,6 +68,10 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .timer-label:before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--primary)); margin-right: 8px; animation: pulse 1.5s infinite; }
 .progress-track { height: 4px; background: hsl(var(--border)); border-radius: 99px; margin-top: 14px; overflow: hidden; }
 .progress-fill { height: 100%; background: hsl(var(--primary)); border-radius: inherit; transition: width .3s linear; }
+.loading-skeleton { display: block; background: linear-gradient(90deg, hsl(var(--secondary)) 20%, hsl(var(--card)) 50%, hsl(var(--secondary)) 80%); background-size: 200% 100%; animation: skeleton-shimmer 1.25s ease-in-out infinite; }
+.prize-skeleton { align-self: center; width: 4.2em; max-width: 60vw; height: .64em; border-radius: .12em; }
+.timer-skeleton { flex: none; width: 5ch; height: 1em; border-radius: 5px; }
+.progress-skeleton { width: 38%; height: 100%; border-radius: inherit; }
 .urgent .timer, .urgent .timer-label { color: hsl(var(--destructive)); }
 .urgent .timer-label:before, .urgent .progress-fill { background: hsl(var(--destructive)); }
 .closed .timer { color: hsl(var(--muted-foreground)); }
@@ -80,6 +84,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .bid-row.current { align-items: flex-end; border: 0; padding-top: 0; }
 .bid-current small { display: block; font-size: 14px; font-weight: 600; color: hsl(var(--muted-foreground)); }
 .bid-row.current strong { font-size: 24px; font-weight: 700; letter-spacing: -.01em; color: hsl(var(--foreground)); }
+.bid-skeleton { align-items: center; min-height: 46px; }
+.bid-skeleton-amount { width: 96px; height: 18px; border-radius: 5px; }
+.bid-skeleton-time { width: 52px; height: 14px; border-radius: 4px; }
 .rules { border-top: 1px solid hsl(var(--border)); }
 .rules summary { height: 54px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; list-style: none; font-weight: 700; }
 .rules summary::-webkit-details-marker { display: none; }
@@ -178,6 +185,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .reset { font-size: 12px; width: 100%; padding: 12px; margin-top: 12px; color: hsl(var(--muted-foreground)); border: 0; background: transparent; text-decoration: underline; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @keyframes pulse { 50% { opacity: .3; } }
+@keyframes skeleton-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 @keyframes rise { from { transform: translateY(24px); opacity: .75; } to { transform: translateY(0); opacity: 1; } }
 @media (min-width: 620px) { .overlay { align-items: center; padding: 20px; } .sheet { border-radius: 24px; max-height: 88dvh; } }
 @media (max-width: 767px) {

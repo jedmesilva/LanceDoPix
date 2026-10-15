@@ -65,6 +65,7 @@ function Home() {
   const updateWinPixKeyMutation = useUpdateAccountWinPixKey();
   const advanceWithdrawalMutation = useAdvanceAccountWithdrawal();
   const auction = auctionQuery.data;
+  const isAuctionLoading = !auction && (accountQuery.isLoading || auctionQuery.isLoading);
   const remaining = auction?.remainingSeconds ?? 60;
   const status = auction?.status ?? 'live';
   const minBid = (auction?.minimumBidCents ?? 0) / 100;
@@ -111,7 +112,7 @@ function Home() {
   const auctionState = status === 'closed' ? 'closed' : status === 'urgent' ? 'urgent' : 'live';
   const prizeLabel = auction
     ? (auction.prizeCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : '—';
+    : '0,00';
   const bonusAmount = (auction?.bonusCents ?? 0) / 100;
   const userName = account?.email
     ? account.email.split('@')[0].split(/[._-]/).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
@@ -340,21 +341,35 @@ function Home() {
       </header>
       <main className="main-layout">
         <div className="auction-content">
-          <section aria-labelledby="auction-title">
+          <section aria-labelledby="auction-title" aria-busy={isAuctionLoading}>
             <h1 className="hero-kicker" id="auction-title">Prêmio em disputa</h1>
             <p className="lead">O último lance leva</p>
-            <p className="prize" data-testid="value-prize"><small>R$</small><span>{prizeLabel}</span></p>
+            <p className="prize" data-testid="value-prize">
+              <small>R$</small>
+              {isAuctionLoading
+                ? <span className="loading-skeleton prize-skeleton" role="status" data-testid="status-prize-loading"><span className="sr-only">Carregando valor do prêmio</span></span>
+                : <span>{prizeLabel}</span>}
+            </p>
             {bonusAmount > 0 && <p className="bonus" data-testid="value-bonus">+ {money(bonusAmount)} de bônus</p>}
-            <div className="timer-row" role="timer" aria-label={`Tempo restante: ${timeLabel(remaining)}`} data-testid="status-countdown">
-              <span className="timer" aria-hidden="true">{timeLabel(remaining)}</span>
-              <span className="timer-label">{status === 'closed' ? 'leilão encerrado' : status === 'urgent' ? 'últimos segundos' : 'para encerrar'}</span>
+            <div className="timer-row" role="timer" aria-label={isAuctionLoading ? 'Carregando dados do leilão' : `Tempo restante: ${timeLabel(remaining)}`} aria-busy={isAuctionLoading} data-testid="status-countdown">
+              {isAuctionLoading ? <>
+                <span className="timer loading-skeleton timer-skeleton" aria-hidden="true" />
+                <span className="timer-label">Carregando leilão…</span>
+              </> : <>
+                <span className="timer" aria-hidden="true">{timeLabel(remaining)}</span>
+                <span className="timer-label">{status === 'closed' ? 'leilão encerrado' : status === 'urgent' ? 'últimos segundos' : 'para encerrar'}</span>
+              </>}
             </div>
-            <div className="progress-track" aria-hidden="true"><div className="progress-fill" style={{ width: `${remaining / 60 * 100}%` }} /></div>
+            <div className="progress-track" aria-hidden="true">{isAuctionLoading ? <div className="loading-skeleton progress-skeleton" /> : <div className="progress-fill" style={{ width: `${remaining / 60 * 100}%` }} />}</div>
             {(auctionQuery.isError || accountQuery.isError) && <p className="inline-error" role="alert">Não foi possível atualizar os dados agora. Tentando novamente…</p>}
           </section>
           <section aria-labelledby="bids-title">
             <h2 id="bids-title" className="sr-only">Últimos lances</h2>
-            <ol className="bid-list" aria-live="polite">
+            <ol className="bid-list" aria-live="polite" aria-busy={isAuctionLoading}>
+              {isAuctionLoading && Array.from({ length: 3 }, (_, index) => <li className="bid-row bid-skeleton" key={`loading-bid-${index}`} aria-hidden="true">
+                <span className="loading-skeleton bid-skeleton-amount" />
+                <span className="loading-skeleton bid-skeleton-time" />
+              </li>)}
               {latestBids.map((bid, index) => <li key={`${bid.timestamp}-${index}-${bid.amount}`} className={`bid-row ${index === 0 ? 'current' : ''}`} data-testid={`row-bid-${index}`}>
                 {index === 0 ? <div className="bid-current">
                   <small data-testid="status-current-bid">{status === 'closed' ? 'Lance vencedor' : 'Lance atual'}{bid.ownBid ? ' - seu lance' : ''}</small>
