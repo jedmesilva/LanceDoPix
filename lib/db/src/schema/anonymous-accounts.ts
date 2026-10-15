@@ -20,7 +20,7 @@ export type AccountWithdrawalStatus =
 export const anonymousAccountsTable = pgTable("anonymous_accounts", {
   id: text("id").primaryKey(),
   email: text("email"),
-  signedIn: boolean("signed_in").notNull().default(true),
+  signedIn: boolean("signed_in").notNull().default(false),
   creditsCents: integer("credits_cents").notNull().default(25_000),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

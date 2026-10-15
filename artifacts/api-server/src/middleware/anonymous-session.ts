@@ -68,7 +68,7 @@ export const anonymousSession: RequestHandler = async (req, res, next) => {
       await client.query("BEGIN");
       await client.query(
         `INSERT INTO anonymous_accounts (id, email, signed_in, credits_cents)
-         VALUES ($1, NULL, TRUE, $2)`,
+         VALUES ($1, NULL, FALSE, $2)`,
         [accountId, DEFAULT_CREDITS_CENTS],
       );
       await client.query(
@@ -94,7 +94,7 @@ export const anonymousSession: RequestHandler = async (req, res, next) => {
     res.locals.sessionAccount = {
       id: accountId,
       email: null,
-      signedIn: true,
+      signedIn: false,
       creditsCents: DEFAULT_CREDITS_CENTS,
     } satisfies SessionAccount;
     next();

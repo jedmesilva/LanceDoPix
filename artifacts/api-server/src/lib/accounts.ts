@@ -392,7 +392,7 @@ export async function resetAccountInTransaction(
   ]);
   await client.query(
     `UPDATE anonymous_accounts
-     SET email = NULL, signed_in = TRUE, credits_cents = $2, updated_at = NOW()
+     SET email = NULL, signed_in = FALSE, credits_cents = $2, updated_at = NOW()
      WHERE id = $1`,
     [accountId, DEFAULT_CREDITS_CENTS],
   );
