@@ -1,11 +1,18 @@
 import { createInsertSchema } from "drizzle-zod";
-import { integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 
 export type DemoAuctionStatus = "live" | "closed";
+export type DemoAuctionBidStatus =
+  | "leading"
+  | "outbid"
+  | "won"
+  | "closed_without_win"
+  | "cancelled";
 
 export const demoAuctionsTable = pgTable("demo_auctions", {
   id: text("id").primaryKey(),
+  roundId: text("round_id").notNull().default("legacy"),
   prizeCents: integer("prize_cents").notNull(),
   currentBidCents: integer("current_bid_cents").notNull(),
   bonusCents: integer("bonus_cents").notNull().default(0),
@@ -22,11 +29,17 @@ export const demoAuctionsTable = pgTable("demo_auctions", {
 export const demoAuctionBidsTable = pgTable("demo_auction_bids", {
   id: serial("id").primaryKey(),
   auctionId: text("auction_id").notNull().references(() => demoAuctionsTable.id, { onDelete: "cascade" }),
+  roundId: text("round_id").notNull().default("legacy"),
+  prizeCents: integer("prize_cents").notNull().default(100_000),
+  bidStatus: text("bid_status").$type<DemoAuctionBidStatus>().notNull().default("outbid"),
   bidderId: text("bidder_id").notNull(),
   bidderName: text("bidder_name").notNull(),
   amountCents: integer("amount_cents").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("demo_auction_bids_round_id_id_idx").on(table.roundId, table.id),
+  index("demo_auction_bids_bidder_id_id_idx").on(table.bidderId, table.id),
+]);
 
 export const insertDemoAuctionSchema = createInsertSchema(demoAuctionsTable).omit({
   createdAt: true,

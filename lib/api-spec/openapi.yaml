@@ -40,6 +40,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CurrentAccount"
+  /account/bids:
+    get:
+      operationId: getAccountBidHistory
+      tags: [account]
+      summary: Get the current account's bid history
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Current account bid history page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountBidHistoryPage"
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /account/profile:
     post:
       operationId: updateAccountProfile
@@ -389,6 +422,40 @@ components:
         - pixType
         - maskedPixKey
         - createdAt
+    AccountBidHistoryStatus:
+      type: string
+      enum: [leading, outbid, won, closed_without_win, cancelled]
+    AccountBidHistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        roundId:
+          type: string
+        prizeCents:
+          type: integer
+        amountCents:
+          type: integer
+        status:
+          $ref: "#/components/schemas/AccountBidHistoryStatus"
+        createdAt:
+          type: string
+          format: date-time
+        win:
+          anyOf:
+            - $ref: "#/components/schemas/AccountWin"
+            - type: "null"
+      required: [id, roundId, prizeCents, amountCents, status, createdAt, win]
+    AccountBidHistoryPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountBidHistoryItem"
+        nextCursor:
+          type: ["integer", "null"]
+      required: [items, nextCursor]
     CurrentAccount:
       type: object
       properties:
