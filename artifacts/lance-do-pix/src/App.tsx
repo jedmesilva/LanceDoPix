@@ -463,6 +463,7 @@ function Home() {
             </>}
           </div>}
           {sheet === 'signin' && <div className="signin-content">
+            {!googleChooserOpen && <p className="signin-description">Use seu e-mail para entrar ou criar sua conta.</p>}
             {googleChooserOpen ? <>
               <div className="google-chooser">
                 <div className="google-chooser-brand"><GoogleMark /><strong>Escolha uma conta</strong></div>
