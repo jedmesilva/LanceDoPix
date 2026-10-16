@@ -429,7 +429,10 @@ function Home() {
             </div>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div> : <div className={`sheet-head ${sheet === 'signin' ? 'signin-sheet-head' : ''}`}>
-            <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Leilão compartilhado' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entre para dar lances' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
+            {sheet === 'signin' ? <div className="signin-heading">
+              <h2 id="dialog-title">Entre para dar lances</h2>
+              {!googleChooserOpen && <p className="signin-description">Use seu e-mail para entrar ou criar sua conta.</p>}
+            </div> : <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Leilão compartilhado' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>}
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div>}
           {sheet === 'account' && <div>
@@ -463,7 +466,6 @@ function Home() {
             </>}
           </div>}
           {sheet === 'signin' && <div className="signin-content">
-            {!googleChooserOpen && <p className="signin-description">Use seu e-mail para entrar ou criar sua conta.</p>}
             {googleChooserOpen ? <>
               <div className="google-chooser">
                 <div className="google-chooser-brand"><GoogleMark /><strong>Escolha uma conta</strong></div>

@@ -1,0 +1,1 @@
+- [Auth modal visual reference](auth-modal-visual-reference.md) — compare title/description grouping and spacing, not just matching copy and order.
