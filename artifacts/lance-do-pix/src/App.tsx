@@ -428,8 +428,11 @@ function Home() {
               </div>
             </div>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
-          </div> : <div className="sheet-head">
-            <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Leilão compartilhado' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entrar para dar lances' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
+          </div> : <div className={`sheet-head ${sheet === 'signin' ? 'signin-sheet-head' : ''}`}>
+            <div className={sheet === 'signin' ? 'signin-title-group' : undefined}>
+              <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Leilão compartilhado' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'signin' ? 'Entrar' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>
+              {sheet === 'signin' && <p className="signin-subtitle">Entre para participar do leilão e dar lances.</p>}
+            </div>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div>}
           {sheet === 'account' && <div>
@@ -476,7 +479,6 @@ function Home() {
                 <button className="google-alt-account" data-testid="button-google-another-account" onClick={() => setGoogleChooserOpen(false)}>Usar outro e-mail</button>
               </div>
             </> : <>
-              <p className="muted">Entre para acompanhar sua conta e participar do leilão.</p>
               <button className="google-btn" data-testid="button-google-login" onClick={() => setGoogleChooserOpen(true)} disabled={profileMutation.isPending}>
                 <GoogleMark />
                 Continuar com Google
