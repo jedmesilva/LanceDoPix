@@ -162,9 +162,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .qr-demo { width: 156px; height: 156px; margin: 16px auto; background: repeating-conic-gradient(#14221d 0% 25%, #fff 0% 50%) 0 0 / 13px 13px; border: 9px solid white; border-radius: 7px; position: relative; opacity: .7; }
 .input-field { width: 100%; height: 50px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: hsl(var(--background)); padding: 0 14px; margin: 8px 0 12px; color: hsl(var(--foreground)); }
 .signin-content { display: grid; gap: 10px; }
-.signin-sheet-head { align-items: flex-start; }
-.signin-title-group { min-width: 0; display: grid; gap: 5px; }
-.signin-subtitle { margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 1.45; }
+.signin-sheet-head { margin-bottom: 12px; }
 .google-btn { width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 11px; border: 1px solid hsl(var(--border)); border-radius: 14px; background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: 15px; font-weight: 700; transition: background .15s, transform .15s; }
 .google-btn:hover { background: hsl(var(--secondary)); }
 .google-btn:active { transform: scale(.99); }
