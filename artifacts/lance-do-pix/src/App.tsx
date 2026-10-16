@@ -43,6 +43,17 @@ function errorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
+function GoogleMark() {
+  return <svg className="google-mark" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.2H24v8h11a9.4 9.4 0 0 1-4.1 6.2v5.2h6.7c3.9-3.6 6-8.8 6-15.2Z" />
+    <path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5.2c-1.8 1.2-4 1.9-6.8 1.9-5.2 0-9.6-3.5-11.2-8.2H5.9v5.4A20 20 0 0 0 24 44Z" />
+    <path fill="#FBBC05" d="M12.8 27.7a12 12 0 0 1 0-7.4V15H5.9a20 20 0 0 0 0 18l6.9-5.3Z" />
+    <path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.9-5.9C34.1 6 29.5 4 24 4A20 20 0 0 0 5.9 15l6.9 5.3c1.6-4.7 6-8.2 11.2-8.2Z" />
+  </svg>;
+}
+
+const DEMO_GOOGLE_EMAIL = 'marina@email.com';
+
 function Home() {
   const queryClient = useQueryClient();
   const accountQuery = useGetCurrentAccount({
@@ -93,6 +104,7 @@ function Home() {
   const [bidInput, setBidInput] = useState('');
   const [notice, setNotice] = useState('');
   const [emailInput, setEmailInput] = useState('marina@email.com');
+  const [googleChooserOpen, setGoogleChooserOpen] = useState(false);
   const [pixType, setPixType] = useState<PixKeyType>('CPF');
   const [pixInput, setPixInput] = useState('');
   const [isEditingPixKey, setIsEditingPixKey] = useState(false);
@@ -189,8 +201,13 @@ function Home() {
     setTopupStep(1);
     setSheet('topup');
   }
+  function openSignIn() {
+    setGoogleChooserOpen(false);
+    setNotice('');
+    setSheet('signin');
+  }
   function placeBid() {
-    if (!signedIn) { setSheet('signin'); return; }
+    if (!signedIn) { openSignIn(); return; }
     if (!auction) { setNotice('Conectando ao leilão. Tente novamente em instantes.'); return; }
     if (!amountValid) {
       setNotice('Informe um valor válido para o lance.');
@@ -229,11 +246,12 @@ function Home() {
       onError: (error) => setNotice(errorMessage(error, 'Não foi possível adicionar créditos.')),
     });
   }
-  function signIn() {
-    profileMutation.mutate({ data: { email: emailInput.trim() } }, {
+  function signIn(email = emailInput.trim(), viaGoogleDemo = false) {
+    profileMutation.mutate({ data: { email } }, {
       onSuccess: (updatedAccount) => {
         queryClient.setQueryData(getGetCurrentAccountQueryKey(), updatedAccount);
-        setSheet(null);
+        setGoogleChooserOpen(false);
+        setSheet(viaGoogleDemo ? 'account' : null);
         setNotice('');
       },
       onError: (error) => setNotice(errorMessage(error, 'Informe um e-mail válido para continuar.')),
@@ -334,7 +352,7 @@ function Home() {
             {signedIn && account && <button className="balance-chip" data-testid="button-balance" onClick={() => openTopup()} aria-label={`Saldo ${money(credits)}. Adicionar créditos`}><span data-testid="value-credits">{money(credits)}</span><span className="add"><Plus size={16} /></span></button>}
             {signedIn && account
               ? <button className={`avatar ${account.wins.some((win) => win.withdrawalStatus === 'available') ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label="Minha conta">{initials}</button>
-              : <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={() => setSheet('signin')}><LogIn size={16} /> Entrar</button>}
+              : <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={openSignIn}><LogIn size={16} /> Entrar</button>}
             <button className="close-btn" data-testid="button-theme" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
           </div>
         </div>
@@ -395,7 +413,7 @@ function Home() {
           <p className={`hint ${notice.includes('insuficiente') || notice.includes('mínimo') ? 'error' : notice ? 'success' : ''}`} role="status" aria-live="polite" data-testid="status-bid-hint">
             {status === 'closed' ? (isOwnLatestBid ? 'Você deu o lance vencedor.' : 'O leilão foi encerrado sem um lance seu.') : !account ? 'Conectando à sua conta…' : !signedIn ? 'Entre para participar. Acompanhar o leilão não exige conta.' : notice || (placeBidMutation.isPending ? 'Registrando lance no servidor…' : `Lance mínimo: ${money(minBid)} · créditos: ${money(credits)}`)}
           </p>
-          {status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Leilão encerrado</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={() => setSheet('signin')}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
+          {status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Leilão encerrado</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={openSignIn}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
         </section>
       </main>
       <div className="sr-only" aria-live="polite" aria-atomic="true" data-testid="status-announcement">{announcement}</div>
@@ -421,7 +439,7 @@ function Home() {
                 <button className="account-pill" data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button>
               </div> : <div className="account-guest">
                 <p className="muted">O leilão é compartilhado e fica visível para todos. Entre para dar lances e acessar sua conta.</p>
-                <button className="primary-btn" data-testid="button-account-signin" onClick={() => setSheet('signin')}>Entrar para dar lances</button>
+                <button className="primary-btn" data-testid="button-account-signin" onClick={openSignIn}>Entrar para dar lances</button>
               </div>}
             <h3 className="account-section">{signedIn ? 'Meus leilões' : 'Leilão'}</h3>
             <ul className="account-list" data-testid="list-auction-history">
@@ -444,7 +462,32 @@ function Home() {
               <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
             </>}
           </div>}
-          {sheet === 'signin' && <div><p className="muted">Use seu e-mail para identificar a conta neste navegador.</p><label className="muted" htmlFor="email-demo">E-mail</label><input id="email-demo" className="input-field" data-testid="input-email" type="email" autoComplete="email" value={emailInput} placeholder="seu@email.com" onChange={(event) => { setEmailInput(event.target.value); setNotice(''); }} />{notice && <p className="hint error">{notice}</p>}<button className="primary-btn" data-testid="button-signin-confirm" onClick={signIn} disabled={profileMutation.isPending}>{profileMutation.isPending ? 'Salvando…' : 'Continuar'}</button></div>}
+          {sheet === 'signin' && <div className="signin-content">
+            {googleChooserOpen ? <>
+              <div className="google-chooser">
+                <div className="google-chooser-brand"><GoogleMark /><strong>Escolha uma conta</strong></div>
+                <p className="muted">para continuar no Lance do Pix</p>
+                <button className="google-account-option" data-testid="button-google-account-demo" onClick={() => { setEmailInput(DEMO_GOOGLE_EMAIL); signIn(DEMO_GOOGLE_EMAIL, true); }} disabled={profileMutation.isPending}>
+                  <span className="google-account-avatar">M</span>
+                  <span className="google-account-copy"><strong>Marina Oliveira</strong><small>{DEMO_GOOGLE_EMAIL}</small></span>
+                  <span className="google-account-arrow" aria-hidden="true">›</span>
+                </button>
+                {notice && <p className="hint error" role="alert">{notice}</p>}
+                <button className="google-alt-account" data-testid="button-google-another-account" onClick={() => setGoogleChooserOpen(false)}>Usar outro e-mail</button>
+              </div>
+            </> : <>
+              <p className="muted">Entre para acompanhar sua conta e participar do leilão.</p>
+              <button className="google-btn" data-testid="button-google-login" onClick={() => setGoogleChooserOpen(true)} disabled={profileMutation.isPending}>
+                <GoogleMark />
+                Continuar com Google
+              </button>
+              <div className="auth-divider"><span>ou use seu e-mail</span></div>
+              <label className="muted" htmlFor="email-demo">E-mail</label>
+              <input id="email-demo" className="input-field" data-testid="input-email" type="email" autoComplete="email" value={emailInput} placeholder="seu@email.com" onChange={(event) => { setEmailInput(event.target.value); setNotice(''); }} />
+              {notice && <p className="hint error" role="alert">{notice}</p>}
+              <button className="primary-btn" data-testid="button-signin-confirm" onClick={() => signIn()} disabled={profileMutation.isPending}>{profileMutation.isPending ? 'Salvando…' : 'Continuar com e-mail'}</button>
+            </>}
+          </div>}
           {sheet === 'topup' && <div>
             {topupStep === 1 && <>
               <h3 className="sheet-section">Escolha o valor</h3><div className="package-grid">{topUpOptionsCents.map((valueCents) => <button className={`package-btn ${packageAmountCents === valueCents ? 'selected' : ''}`} key={valueCents} data-testid={`button-package-${valueCents / 100}`} aria-pressed={packageAmountCents === valueCents} onClick={() => setPackageAmountCents(valueCents)}>{money(valueCents / 100)}</button>)}</div>
