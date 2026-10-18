@@ -34,6 +34,7 @@ export const GetCurrentAccountResponse = zod.object({
   "wins": zod.array(zod.object({
   "id": zod.number().int(),
   "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
   "prizeCents": zod.number().int(),
   "bonusCents": zod.number().int(),
   "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
@@ -41,6 +42,44 @@ export const GetCurrentAccountResponse = zod.object({
   "maskedPixKey": zod.string().nullable(),
   "createdAt": zod.coerce.date()
 }))
+})
+
+
+/**
+ * @summary Get the current account's bid history
+ */
+
+export const getAccountBidHistoryQueryLimitDefault = 20;
+export const getAccountBidHistoryQueryLimitMax = 50;
+
+
+
+export const GetAccountBidHistoryQueryParams = zod.object({
+  "cursor": zod.coerce.number().int().min(1).optional(),
+  "limit": zod.coerce.number().int().min(1).max(getAccountBidHistoryQueryLimitMax).default(getAccountBidHistoryQueryLimitDefault)
+})
+
+export const GetAccountBidHistoryResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.number().int(),
+  "roundId": zod.string(),
+  "prizeCents": zod.number().int(),
+  "amountCents": zod.number().int(),
+  "status": zod.enum(['leading', 'outbid', 'won', 'closed_without_win', 'cancelled']),
+  "createdAt": zod.coerce.date(),
+  "win": zod.union([zod.object({
+  "id": zod.number().int(),
+  "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
+  "prizeCents": zod.number().int(),
+  "bonusCents": zod.number().int(),
+  "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
+  "pixType": zod.union([zod.enum(['CPF', 'Celular', 'E-mail', 'Aleatória']),zod.null()]),
+  "maskedPixKey": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}),zod.null()])
+})),
+  "nextCursor": zod.number().int().nullable()
 })
 
 
@@ -69,6 +108,7 @@ export const UpdateAccountProfileResponse = zod.object({
   "wins": zod.array(zod.object({
   "id": zod.number().int(),
   "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
   "prizeCents": zod.number().int(),
   "bonusCents": zod.number().int(),
   "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
@@ -96,6 +136,7 @@ export const SignOutAccountResponse = zod.object({
   "wins": zod.array(zod.object({
   "id": zod.number().int(),
   "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
   "prizeCents": zod.number().int(),
   "bonusCents": zod.number().int(),
   "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
@@ -127,6 +168,7 @@ export const CreateAccountTopUpResponse = zod.object({
   "wins": zod.array(zod.object({
   "id": zod.number().int(),
   "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
   "prizeCents": zod.number().int(),
   "bonusCents": zod.number().int(),
   "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
@@ -167,6 +209,7 @@ export const RequestAccountWithdrawalResponse = zod.object({
   "wins": zod.array(zod.object({
   "id": zod.number().int(),
   "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
   "prizeCents": zod.number().int(),
   "bonusCents": zod.number().int(),
   "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
@@ -207,6 +250,7 @@ export const UpdateAccountWinPixKeyResponse = zod.object({
   "wins": zod.array(zod.object({
   "id": zod.number().int(),
   "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
   "prizeCents": zod.number().int(),
   "bonusCents": zod.number().int(),
   "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
@@ -238,6 +282,7 @@ export const AdvanceAccountWithdrawalResponse = zod.object({
   "wins": zod.array(zod.object({
   "id": zod.number().int(),
   "winningBidId": zod.number().int(),
+  "winningBidAmountCents": zod.number().int(),
   "prizeCents": zod.number().int(),
   "bonusCents": zod.number().int(),
   "withdrawalStatus": zod.enum(['available', 'requested', 'under_review', 'paid']),
@@ -261,6 +306,7 @@ export const GetDemoAuctionResponse = zod.object({
   "remainingSeconds": zod.number().int(),
   "status": zod.enum(['live', 'urgent', 'closed']),
   "isCurrentUserLastBid": zod.boolean(),
+  "currentUserLastBidAmountCents": zod.number().int().nullable(),
   "bids": zod.array(zod.object({
   "id": zod.number().int(),
   "bidderName": zod.string(),
@@ -291,6 +337,7 @@ export const PlaceDemoAuctionBidResponse = zod.object({
   "remainingSeconds": zod.number().int(),
   "status": zod.enum(['live', 'urgent', 'closed']),
   "isCurrentUserLastBid": zod.boolean(),
+  "currentUserLastBidAmountCents": zod.number().int().nullable(),
   "bids": zod.array(zod.object({
   "id": zod.number().int(),
   "bidderName": zod.string(),
@@ -314,6 +361,7 @@ export const ResetDemoAuctionResponse = zod.object({
   "remainingSeconds": zod.number().int(),
   "status": zod.enum(['live', 'urgent', 'closed']),
   "isCurrentUserLastBid": zod.boolean(),
+  "currentUserLastBidAmountCents": zod.number().int().nullable(),
   "bids": zod.array(zod.object({
   "id": zod.number().int(),
   "bidderName": zod.string(),

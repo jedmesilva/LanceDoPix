@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccountBidHistoryPage,
   AccountPixKeyInput,
   AccountProfileInput,
   AccountTopUpInput,
@@ -29,6 +30,7 @@ import type {
   DemoAuction,
   DemoAuctionBidInput,
   DemoAuctionError,
+  GetAccountBidHistoryParams,
   HealthStatus
 } from './api.schemas';
 
@@ -202,6 +204,90 @@ export function useGetCurrentAccount<TData = Awaited<ReturnType<typeof getCurren
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetCurrentAccountQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAccountBidHistoryUrl = (params?: GetAccountBidHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/account/bids?${stringifiedParams}` : `/api/account/bids`
+}
+
+/**
+ * @summary Get the current account's bid history
+ */
+export const getAccountBidHistory = async (params?: GetAccountBidHistoryParams, options?: Parameters<typeof customFetch>[1]): Promise<AccountBidHistoryPage> => {
+
+  return customFetch<AccountBidHistoryPage>(getGetAccountBidHistoryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAccountBidHistoryQueryKey = (params?: GetAccountBidHistoryParams,) => {
+    return [
+    `/api/account/bids`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAccountBidHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getAccountBidHistory>>, TError = ErrorType<ApiError>>(params?: GetAccountBidHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountBidHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccountBidHistoryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountBidHistory>>> = ({ signal }) => getAccountBidHistory(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccountBidHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAccountBidHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getAccountBidHistory>>>
+export type GetAccountBidHistoryQueryError = ErrorType<ApiError>
+
+
+/**
+ * @summary Get the current account's bid history
+ */
+
+export function useGetAccountBidHistory<TData = Awaited<ReturnType<typeof getAccountBidHistory>>, TError = ErrorType<ApiError>>(
+ params?: GetAccountBidHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountBidHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAccountBidHistoryQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

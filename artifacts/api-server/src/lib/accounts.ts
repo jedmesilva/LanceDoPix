@@ -23,6 +23,7 @@ type TransactionRow = {
 type WinRow = {
   id: number;
   winning_bid_id: number;
+  winning_bid_amount_cents: number;
   prize_cents: number;
   bonus_cents: number;
   withdrawal_status: "available" | "requested" | "under_review" | "paid";
@@ -45,6 +46,7 @@ export type CurrentAccountState = {
   wins: Array<{
     id: number;
     winningBidId: number;
+    winningBidAmountCents: number;
     prizeCents: number;
     bonusCents: number;
     withdrawalStatus: WinRow["withdrawal_status"];
@@ -86,11 +88,14 @@ async function readAccount(
     [accountId],
   );
   const winResult = await client.query<WinRow>(
-    `SELECT id, winning_bid_id, prize_cents, bonus_cents,
-            withdrawal_status, pix_type, pix_key, created_at
-     FROM demo_auction_wins
-     WHERE account_id = $1
-     ORDER BY id DESC
+    `SELECT win.id, win.winning_bid_id,
+            bid.amount_cents AS winning_bid_amount_cents,
+            win.prize_cents, win.bonus_cents, win.withdrawal_status,
+            win.pix_type, win.pix_key, win.created_at
+     FROM demo_auction_wins AS win
+     JOIN demo_auction_bids AS bid ON bid.id = win.winning_bid_id
+     WHERE win.account_id = $1
+     ORDER BY win.id DESC
      LIMIT 20`,
     [accountId],
   );
@@ -109,6 +114,7 @@ async function readAccount(
     wins: winResult.rows.map((row) => ({
       id: row.id,
       winningBidId: row.winning_bid_id,
+      winningBidAmountCents: row.winning_bid_amount_cents,
       prizeCents: row.prize_cents,
       bonusCents: row.bonus_cents,
       withdrawalStatus: row.withdrawal_status,

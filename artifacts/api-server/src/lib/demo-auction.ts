@@ -52,6 +52,7 @@ type DemoAuctionState = {
   remainingSeconds: number;
   status: "live" | "urgent" | "closed";
   isCurrentUserLastBid: boolean;
+  currentUserLastBidAmountCents: number | null;
   bids: DemoAuctionBid[];
 };
 
@@ -254,11 +255,27 @@ async function getRecentBids(
   }));
 }
 
+async function getCurrentUserLastBidAmountCents(
+  client: PoolClient,
+  accountId: string,
+): Promise<number | null> {
+  const result = await client.query<{ amount_cents: number }>(
+    `SELECT amount_cents
+     FROM demo_auction_bids
+     WHERE auction_id = $1 AND bidder_id = $2
+     ORDER BY id DESC
+     LIMIT 1`,
+    [AUCTION_ID, accountId],
+  );
+  return result.rows[0]?.amount_cents ?? null;
+}
+
 function toAuctionState(
   auction: AuctionRow,
   bids: DemoAuctionBid[],
   now: Date,
   accountId: string,
+  currentUserLastBidAmountCents: number | null,
 ): DemoAuctionState {
   const remainingSeconds =
     auction.status === "closed"
@@ -280,6 +297,7 @@ function toAuctionState(
           ? "urgent"
           : "live",
     isCurrentUserLastBid: auction.last_bidder_id === accountId,
+    currentUserLastBidAmountCents,
     bids,
   };
 }
@@ -290,7 +308,15 @@ export async function getDemoAuction(accountId: string): Promise<DemoAuctionStat
     let auction = await lockAuction(client, now);
     auction = await applyElapsedTime(client, auction, now);
     const bids = await getRecentBids(client, accountId);
-    return toAuctionState(auction, bids, now, accountId);
+    const currentUserLastBidAmountCents =
+      await getCurrentUserLastBidAmountCents(client, accountId);
+    return toAuctionState(
+      auction,
+      bids,
+      now,
+      accountId,
+      currentUserLastBidAmountCents,
+    );
   });
 }
 
@@ -387,7 +413,13 @@ export async function placeDemoAuctionBid(input: {
     if (!updated) throw new Error("The demonstration bid was not recorded.");
 
     const bids = await getRecentBids(client, input.accountId);
-    return toAuctionState(updated, bids, now, input.accountId);
+    return toAuctionState(
+      updated,
+      bids,
+      now,
+      input.accountId,
+      input.amountCents,
+    );
   });
 }
 
@@ -438,6 +470,6 @@ export async function resetDemoAuction(accountId: string): Promise<DemoAuctionSt
 
     auction = updated;
     const bids = await getRecentBids(client, accountId);
-    return toAuctionState(auction, bids, now, accountId);
+    return toAuctionState(auction, bids, now, accountId, null);
   });
 }

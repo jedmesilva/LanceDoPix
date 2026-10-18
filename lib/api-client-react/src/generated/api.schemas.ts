@@ -76,6 +76,7 @@ export const AccountWinWithdrawalStatus = {
 export interface AccountWin {
   id: number;
   winningBidId: number;
+  winningBidAmountCents: number;
   prizeCents: number;
   bonusCents: number;
   withdrawalStatus: AccountWinWithdrawalStatus;
@@ -83,6 +84,33 @@ export interface AccountWin {
   /** @nullable */
   maskedPixKey: string | null;
   createdAt: string;
+}
+
+export type AccountBidHistoryStatus = typeof AccountBidHistoryStatus[keyof typeof AccountBidHistoryStatus];
+
+
+export const AccountBidHistoryStatus = {
+  leading: 'leading',
+  outbid: 'outbid',
+  won: 'won',
+  closed_without_win: 'closed_without_win',
+  cancelled: 'cancelled',
+} as const;
+
+export interface AccountBidHistoryItem {
+  id: number;
+  roundId: string;
+  prizeCents: number;
+  amountCents: number;
+  status: AccountBidHistoryStatus;
+  createdAt: string;
+  win: AccountWin | null;
+}
+
+export interface AccountBidHistoryPage {
+  items: AccountBidHistoryItem[];
+  /** @nullable */
+  nextCursor: number | null;
 }
 
 export interface CurrentAccount {
@@ -122,6 +150,8 @@ export interface DemoAuction {
   remainingSeconds: number;
   status: DemoAuctionStatus;
   isCurrentUserLastBid: boolean;
+  /** @nullable */
+  currentUserLastBidAmountCents: number | null;
   bids: DemoAuctionBid[];
 }
 
@@ -137,4 +167,16 @@ export interface DemoAuctionError {
 export interface ApiError {
   error: string;
 }
+
+export type GetAccountBidHistoryParams = {
+/**
+ * @minimum 1
+ */
+cursor?: number;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+};
 

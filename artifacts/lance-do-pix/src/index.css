@@ -134,18 +134,27 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .account-guest p { margin: 0; line-height: 1.5; }
 .account-section { margin: 20px 0 4px; color: hsl(var(--muted-foreground)); font-size: 15px; font-weight: 700; }
 .account-list { list-style: none; margin: 0; padding: 0; }
-.account-list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: 15px; font-variant-numeric: tabular-nums; }
+.account-list-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 15px 0; border-top: 1px solid hsl(var(--border)); font-size: 15px; font-variant-numeric: tabular-nums; }
 .account-list-description { flex: 1; min-width: 0; }
-.account-list-description small { display: block; margin-top: 3px; color: hsl(var(--muted-foreground)); font-size: 13px; }
+.account-list-label { display: block; color: hsl(var(--muted-foreground)); font-size: 12px; line-height: 1.2; }
+.account-prize { display: block; margin-top: 2px; font-size: 23px; font-weight: 800; letter-spacing: -.04em; line-height: 1.1; }
+.account-list-description small.account-list-detail { display: block; margin-top: 5px; color: hsl(var(--muted-foreground)); font-size: 13px; line-height: 1.35; }
+.account-list-detail strong { color: hsl(var(--foreground)); font-weight: 700; }
+.account-action { flex: none; max-width: 45%; align-self: center; text-align: right; }
 .account-tag { flex: none; align-self: center; padding: 4px 10px; border-radius: 999px; background: hsl(var(--secondary)); color: hsl(var(--muted-foreground)); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .account-tag-live { background: hsl(var(--primary) / .12); color: hsl(var(--primary)); }
 .account-tag-paid { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.account-tag-button { border: 0; }
+.account-tag-button { border: 0; cursor: pointer; }
 .account-pill-small { height: 34px; padding: 0 14px; font-size: 14px; }
 .account-empty { padding: 12px 0; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 14px; }
 .account-amount-positive { color: hsl(var(--primary)); font-weight: 700; }
 .account-amount-negative { font-weight: 700; }
 .account-signout { margin-top: 12px; border-width: 1.5px; border-radius: 14px; }
+@media (max-width: 440px) {
+  .account-list-row { gap: 8px; }
+  .account-prize { font-size: 21px; }
+  .account-action { max-width: 42%; }
+}
 .sheet-section { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--muted-foreground)); margin: 19px 0 6px; }
 .list { list-style: none; padding: 0; margin: 0; }
 .list-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: 14px; }

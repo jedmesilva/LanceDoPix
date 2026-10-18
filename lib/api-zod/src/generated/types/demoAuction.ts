@@ -18,5 +18,7 @@ export interface DemoAuction {
   remainingSeconds: number;
   status: DemoAuctionStatus;
   isCurrentUserLastBid: boolean;
+  /** @nullable */
+  currentUserLastBidAmountCents: number | null;
   bids: DemoAuctionBid[];
 }

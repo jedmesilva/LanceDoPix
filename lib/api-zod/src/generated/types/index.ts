@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accountBidHistoryItem';
+export * from './accountBidHistoryPage';
+export * from './accountBidHistoryStatus';
 export * from './accountPixKeyInput';
 export * from './accountProfileInput';
 export * from './accountTopUpInput';
@@ -21,5 +24,6 @@ export * from './demoAuctionBid';
 export * from './demoAuctionBidInput';
 export * from './demoAuctionError';
 export * from './demoAuctionStatus';
+export * from './getAccountBidHistoryParams';
 export * from './healthStatus';
 export * from './pixKeyType';

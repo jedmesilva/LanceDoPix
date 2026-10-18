@@ -22,11 +22,6 @@ import {
 
 const money = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const timeLabel = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-const auctionDateLabel = (value: Date | string) => new Date(String(value)).toLocaleDateString('pt-BR', {
-  day: '2-digit',
-  month: '2-digit',
-  timeZone: 'America/Sao_Paulo',
-});
 const withdrawalLabels: Record<AccountWinWithdrawalStatus, string> = {
   available: 'disponível',
   requested: 'Solicitado',
@@ -447,14 +442,34 @@ function Home() {
             <h3 className="account-section">{signedIn ? 'Meus leilões' : 'Leilão'}</h3>
             <ul className="account-list" data-testid="list-auction-history">
               {showSharedAuction && auction && <li className="account-list-row" data-testid="row-auction-current">
-                <span className="account-list-description">Prêmio {money(auction.prizeCents / 100)}<small>hoje</small></span>
-                <span className={`account-tag ${status === 'closed' ? '' : 'account-tag-live'}`}>{status === 'closed' ? 'Encerrado' : 'Em andamento'}</span>
+                <span className="account-list-description">
+                  <span className="account-list-label">{status === 'closed' ? 'Prêmio' : 'Prêmio em disputa'}</span>
+                  <strong className="account-prize">{money(auction.prizeCents / 100)}</strong>
+                  {auction.currentUserLastBidAmountCents !== null && <small className="account-list-detail">
+                    Seu lance <strong>{money(auction.currentUserLastBidAmountCents / 100)}</strong>
+                  </small>}
+                </span>
+                <span className={`account-tag ${status === 'closed' ? '' : 'account-tag-live'}`} role="status">
+                  {status === 'closed'
+                    ? 'Encerrado'
+                    : auction.isCurrentUserLastBid
+                      ? 'Você está ganhando'
+                      : auction.currentUserLastBidAmountCents !== null
+                        ? 'Cobriram seu lance'
+                        : 'Em andamento'}
+                </span>
               </li>}
               {signedIn && account?.wins.slice(0, showSharedAuction ? 3 : 4).map((win) => <li className="account-list-row" key={win.id} data-testid={`row-auction-win-${win.id}`}>
-                <span className="account-list-description">Prêmio {money(win.prizeCents / 100)}<small>{auctionDateLabel(win.createdAt)} - Ganhou</small></span>
+                <span className="account-list-description">
+                  <span className="account-list-label">Prêmio</span>
+                  <strong className="account-prize">{money(win.prizeCents / 100)}</strong>
+                  <small className="account-list-detail">
+                    Você ganhou com lance de <strong>{money(win.winningBidAmountCents / 100)}</strong>
+                  </small>
+                </span>
                 {win.withdrawalStatus === 'available'
-                  ? <button className="account-pill account-pill-small" data-testid="button-history-redeem" onClick={() => openWithdrawal(win.id)}>Resgatar</button>
-                  : <button className={`account-tag account-tag-button ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? withdrawalLabels.paid : 'Em análise'}</button>}
+                  ? <button className="account-pill account-pill-small auction-action" data-testid="button-history-redeem" aria-label={`Resgatar prêmio de ${money(win.prizeCents / 100)}`} onClick={() => openWithdrawal(win.id)}>Resgatar</button>
+                  : <button className={`account-tag account-tag-button auction-action ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" aria-label={`Ver status do prêmio: ${win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}`} onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}</button>}
               </li>)}
               {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando o leilão compartilhado…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar o leilão agora.' : 'Nenhum leilão por aqui ainda.'}</li>}
             </ul>

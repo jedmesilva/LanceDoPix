@@ -11,6 +11,7 @@ import type { PixKeyType } from './pixKeyType';
 export interface AccountWin {
   id: number;
   winningBidId: number;
+  winningBidAmountCents: number;
   prizeCents: number;
   bonusCents: number;
   withdrawalStatus: AccountWinWithdrawalStatus;

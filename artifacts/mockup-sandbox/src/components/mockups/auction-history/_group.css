@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  color-scheme: light;
+  --background: 155 22% 96%;
+  --foreground: 163 28% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 163 28% 11%;
+  --border: 150 14% 86%;
+  --ring: 167 85% 31%;
+  --primary: 167 79% 40%;
+  --primary-foreground: 160 70% 7%;
+  --secondary: 155 18% 91%;
+  --secondary-foreground: 163 28% 11%;
+  --muted: 155 15% 92%;
+  --muted-foreground: 159 11% 41%;
+  --accent: 167 79% 40%;
+  --accent-foreground: 160 70% 7%;
+  --destructive: 358 72% 57%;
+  --destructive-foreground: 0 0% 100%;
+  --app-font-sans: 'Archivo', system-ui, sans-serif;
+  --app-font-mono: 'DM Mono', monospace;
+  --radius: 1rem;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: 160 24% 7%;
+  --foreground: 150 25% 92%;
+  --card: 160 20% 10%;
+  --card-foreground: 150 25% 92%;
+  --border: 160 15% 19%;
+  --ring: 167 70% 53%;
+  --primary: 167 68% 51%;
+  --primary-foreground: 160 70% 7%;
+  --secondary: 160 17% 15%;
+  --secondary-foreground: 150 25% 92%;
+  --muted: 160 17% 15%;
+  --muted-foreground: 155 12% 62%;
+  --accent: 167 68% 51%;
+  --accent-foreground: 160 70% 7%;
+  --destructive: 358 82% 68%;
+  --destructive-foreground: 0 0% 100%;
+}
+
+.auction-preview {
+  min-height: 100vh;
+  padding: 24px;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-family: var(--app-font-sans);
+}
+
+.auction-preview-sheet {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: 22px 20px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 22px;
+  background: hsl(var(--card));
+  box-shadow: 0 14px 40px hsl(var(--foreground) / .08);
+}
+
+.account-section {
+  margin: 0 0 4px;
+  color: hsl(var(--muted-foreground));
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.account-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.account-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-list-description {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-list-description small {
+  display: block;
+  margin-top: 3px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+
+.account-tag {
+  flex: none;
+  align-self: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: hsl(var(--secondary));
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.account-tag-live {
+  background: hsl(var(--primary) / .12);
+  color: hsl(var(--primary));
+}
+
+.account-tag-paid {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.account-pill {
+  flex: none;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-pill-small {
+  min-height: 34px;
+}
+
+.account-list-label {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.account-prize {
+  display: block;
+  margin-top: 2px;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1.1;
+}
+
+.account-list-detail {
+  display: block;
+  margin-top: 5px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.account-list-detail strong {
+  color: hsl(var(--foreground));
+  font-weight: 700;
+}
+
+.auction-action {
+  flex: none;
+  max-width: 45%;
+  text-align: right;
+}
+
+.auction-action-button {
+  border: 0;
+  font-family: inherit;
+}
+
+@media (max-width: 440px) {
+  .auction-preview {
+    padding: 14px;
+  }
+
+  .auction-preview-sheet {
+    padding: 18px 16px;
+  }
+
+  .account-list-row {
+    gap: 8px;
+  }
+
+  .account-prize {
+    font-size: 21px;
+  }
+
+  .auction-action {
+    max-width: 42%;
+  }
+}
