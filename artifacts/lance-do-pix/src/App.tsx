@@ -432,8 +432,8 @@ function Home() {
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div> : sheet === 'statement' ? <div className="sheet-head statement-sheet-head">
             <div className="statement-heading">
-              <button className="statement-back" data-testid="button-statement-back" onClick={() => setSheet('account')}>
-                <ArrowLeft size={16} aria-hidden="true" /> Minha conta
+              <button className="statement-back" data-testid="button-statement-back" aria-label="Voltar para minha conta" onClick={() => setSheet('account')}>
+                <ArrowLeft size={16} aria-hidden="true" /> Voltar
               </button>
               <h2 id="dialog-title">Extrato de movimentações</h2>
             </div>

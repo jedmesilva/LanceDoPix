@@ -159,8 +159,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .account-statement-link > svg { flex: none; color: hsl(var(--muted-foreground)); }
 .statement-sheet-head { align-items: flex-start; }
 .statement-heading { min-width: 0; display: grid; gap: 4px; }
-.statement-back { display: inline-flex; align-items: center; gap: 4px; width: max-content; padding: 2px 0; border: 0; background: transparent; color: hsl(var(--primary)); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
-.statement-heading h2 { font-size: 21px; letter-spacing: -.035em; margin: 0; }
+.statement-back { display: inline-flex; align-items: center; gap: 4px; width: max-content; padding: 2px 0; border: 0; background: transparent; color: hsl(var(--muted-foreground)); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.statement-back:hover { color: hsl(var(--foreground)); }
+.statement-heading h2 { color: hsl(var(--foreground)); font-size: 21px; font-weight: 700; letter-spacing: -.035em; margin: 0; }
 @media (max-width: 440px) {
   .account-list-row { gap: 8px; }
   .account-prize { font-size: 21px; }
