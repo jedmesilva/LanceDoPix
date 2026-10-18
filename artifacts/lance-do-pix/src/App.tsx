@@ -450,6 +450,13 @@ function Home() {
                 <span className="account-balance-label">Créditos</span>
                 <strong data-testid="value-account-credits">{money(credits)}</strong>
                 <button className="account-pill" data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button>
+                <button className="account-statement-link" data-testid="button-account-statement" onClick={() => setSheet('statement')}>
+                  <span className="account-statement-copy">
+                    <strong>Ver extrato</strong>
+                    <small>Recargas e lances da sua conta</small>
+                  </span>
+                  <ChevronRight size={18} aria-hidden="true" />
+                </button>
               </div> : <div className="account-guest">
                 <p className="muted">O leilão é compartilhado e fica visível para todos. Entre para dar lances e acessar sua conta.</p>
                 <button className="primary-btn" data-testid="button-account-signin" onClick={openSignIn}>Entrar para dar lances</button>
@@ -489,13 +496,6 @@ function Home() {
               {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando o leilão compartilhado…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar o leilão agora.' : 'Nenhum leilão por aqui ainda.'}</li>}
             </ul>
             {signedIn && <>
-              <button className="account-statement-link" data-testid="button-account-statement" onClick={() => setSheet('statement')}>
-                <span className="account-statement-copy">
-                  <strong>Ver extrato</strong>
-                  <small>Recargas e lances da sua conta</small>
-                </span>
-                <ChevronRight size={18} aria-hidden="true" />
-              </button>
               <button className="danger-btn account-signout" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
               <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
             </>}
