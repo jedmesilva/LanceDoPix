@@ -20,7 +20,11 @@ import {
   type PixKeyType,
 } from '@workspace/api-client-react';
 
-const money = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const money = (value: number) => Number.isFinite(value)
+  ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  : '—';
+const isValidBidAmountCents = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 const timeLabel = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 const withdrawalLabels: Record<AccountWinWithdrawalStatus, string> = {
   available: 'disponível',
@@ -369,7 +373,7 @@ function Home() {
           <div className="head-actions">
             {signedIn && account && <button className="balance-chip" data-testid="button-balance" onClick={() => openTopup()} aria-label={`Saldo ${money(credits)}. Adicionar créditos`}><span data-testid="value-credits">{money(credits)}</span><span className="add"><Plus size={16} /></span></button>}
             {signedIn && account
-              ? <button className={`avatar ${account.wins.some((win) => win.withdrawalStatus === 'available') ? 'pending' : ''}`} data-testid="button-account" onClick={() => setSheet('account')} aria-label="Minha conta">{initials}</button>
+              ? <button className={`avatar ${account.wins.some((win) => win.withdrawalStatus === 'available') ? 'pending' : ''}`} data-testid="button-account" onClick={() => { void accountQuery.refetch(); setSheet('account'); }} aria-label="Minha conta">{initials}</button>
               : <button className="secondary-btn sign-in" data-testid="button-signin-open" onClick={openSignIn}><LogIn size={16} /> Entrar</button>}
             <button className="close-btn" data-testid="button-theme" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
           </div>
@@ -497,18 +501,30 @@ function Home() {
                         : 'Em andamento'}
                 </span>
               </li>}
-              {signedIn && account?.wins.slice(0, showSharedAuction ? 3 : 4).map((win) => <li className="account-list-row" key={win.id} data-testid={`row-auction-win-${win.id}`}>
-                <span className="account-list-description">
-                  <span className="account-list-label">Prêmio</span>
-                  <strong className="account-prize">{money(win.prizeCents / 100)}</strong>
-                  <small className="account-list-detail">
-                    Você ganhou com lance de <strong>{money(win.winningBidAmountCents / 100)}</strong>
-                  </small>
-                </span>
-                {win.withdrawalStatus === 'available'
-                  ? <button className="account-pill account-pill-small auction-action" data-testid="button-history-redeem" aria-label={`Resgatar prêmio de ${money(win.prizeCents / 100)}`} onClick={() => openWithdrawal(win.id)}>Resgatar</button>
-                  : <button className={`account-tag account-tag-button auction-action ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" aria-label={`Ver status do prêmio: ${win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}`} onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}</button>}
-              </li>)}
+              {signedIn && account?.wins.slice(0, showSharedAuction ? 3 : 4).map((win) => {
+                const currentAuctionBidAmountCents = auction?.bids.find((bid) => bid.id === win.winningBidId)?.amountCents;
+                const winningBidAmountCents =
+                  isValidBidAmountCents(win.winningBidAmountCents)
+                    ? win.winningBidAmountCents
+                    : isValidBidAmountCents(currentAuctionBidAmountCents)
+                      ? currentAuctionBidAmountCents
+                      : null;
+
+                return <li className="account-list-row" key={win.id} data-testid={`row-auction-win-${win.id}`}>
+                  <span className="account-list-description">
+                    <span className="account-list-label">Prêmio</span>
+                    <strong className="account-prize">{money(win.prizeCents / 100)}</strong>
+                    {winningBidAmountCents !== null
+                      ? <small className="account-list-detail">
+                        Você ganhou com lance de <strong>{money(winningBidAmountCents / 100)}</strong>
+                      </small>
+                      : <small className="account-list-detail">Valor do lance indisponível</small>}
+                  </span>
+                  {win.withdrawalStatus === 'available'
+                    ? <button className="account-pill account-pill-small auction-action" data-testid="button-history-redeem" aria-label={`Resgatar prêmio de ${money(win.prizeCents / 100)}`} onClick={() => openWithdrawal(win.id)}>Resgatar</button>
+                    : <button className={`account-tag account-tag-button auction-action ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" aria-label={`Ver status do prêmio: ${win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}`} onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}</button>}
+                </li>;
+              })}
               {signedIn && auction && !showSharedAuction && !account?.wins.length && <li className="account-empty">Você ainda não participou de nenhum leilão.</li>}
               {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando o leilão compartilhado…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar o leilão agora.' : 'Nenhum leilão por aqui ainda.'}</li>}
             </ul>
