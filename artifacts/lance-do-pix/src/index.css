@@ -150,6 +150,16 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .account-amount-positive { color: hsl(var(--primary)); font-weight: 700; }
 .account-amount-negative { font-weight: 700; }
 .account-signout { margin-top: 12px; border-width: 1.5px; border-radius: 14px; }
+.account-statement-link { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 13px 14px; border: 1px solid hsl(var(--border)); border-radius: 14px; background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; text-align: left; cursor: pointer; }
+.account-statement-link:hover { border-color: hsl(var(--primary) / .45); background: hsl(var(--secondary) / .55); }
+.account-statement-copy { min-width: 0; }
+.account-statement-copy strong { display: block; font-size: 14px; }
+.account-statement-copy small { display: block; margin-top: 3px; color: hsl(var(--muted-foreground)); font-size: 12px; }
+.account-statement-link > svg { flex: none; color: hsl(var(--muted-foreground)); }
+.statement-sheet-head { align-items: flex-start; }
+.statement-heading { min-width: 0; display: grid; gap: 4px; }
+.statement-back { display: inline-flex; align-items: center; gap: 4px; width: max-content; padding: 2px 0; border: 0; background: transparent; color: hsl(var(--primary)); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.statement-heading h2 { font-size: 21px; letter-spacing: -.035em; margin: 0; }
 @media (max-width: 440px) {
   .account-list-row { gap: 8px; }
   .account-prize { font-size: 21px; }

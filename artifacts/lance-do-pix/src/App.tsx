@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Check, ChevronDown, LogIn, Moon, Plus, Sun, Trophy, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Check, ChevronDown, ChevronRight, LogIn, Moon, Plus, Sun, Trophy, X } from 'lucide-react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import {
@@ -87,7 +87,8 @@ function Home() {
   const isOwnLatestBid = auction?.isCurrentUserLastBid ?? false;
   const winningBidId = auction?.bids.at(-1)?.id ?? null;
   const currentWin = account?.wins.find((win) => win.winningBidId === winningBidId) ?? null;
-  const [sheet, setSheet] = useState<'account' | 'topup' | 'signin' | 'win' | 'withdrawal' | 'rules' | null>(null);
+  const [sheet, setSheet] = useState<'account' | 'statement' | 'topup' | 'signin' | 'win' | 'withdrawal' | 'rules' | null>(null);
+  const sheetRef = useRef<HTMLElement | null>(null);
   const [selectedWinId, setSelectedWinId] = useState<number | null>(null);
   const selectedWin = selectedWinId === null
     ? currentWin
@@ -165,6 +166,12 @@ function Home() {
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
+  }, [sheet]);
+
+  useEffect(() => {
+    if (sheet === 'account' || sheet === 'statement') {
+      sheetRef.current?.scrollTo(0, 0);
+    }
   }, [sheet]);
 
   useEffect(() => {
@@ -413,7 +420,7 @@ function Home() {
       </main>
       <div className="sr-only" aria-live="polite" aria-atomic="true" data-testid="status-announcement">{announcement}</div>
       {sheet && <div className="overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSheet(null); }} role="presentation">
-        <section className="sheet" role="dialog" aria-modal="true" aria-labelledby="dialog-title" data-testid={`dialog-${sheet}`}>
+        <section ref={sheetRef} className="sheet" role="dialog" aria-modal="true" aria-labelledby="dialog-title" data-testid={`dialog-${sheet}`}>
           {sheet === 'account' && signedIn && account ? <div className="sheet-head account-sheet-head">
             <div className="account-head">
               <span className="avatar account-avatar" aria-hidden="true">{initials}</span>
@@ -421,6 +428,14 @@ function Home() {
                 <strong className="account-name" id="dialog-title">{userName}</strong>
                 <span className="muted">{account.email ?? 'Conta neste navegador'}</span>
               </div>
+            </div>
+            <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
+          </div> : sheet === 'statement' ? <div className="sheet-head statement-sheet-head">
+            <div className="statement-heading">
+              <button className="statement-back" data-testid="button-statement-back" onClick={() => setSheet('account')}>
+                <ArrowLeft size={16} aria-hidden="true" /> Minha conta
+              </button>
+              <h2 id="dialog-title">Extrato de movimentações</h2>
             </div>
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div> : <div className={`sheet-head ${sheet === 'signin' ? 'signin-sheet-head' : ''}`}>
@@ -474,11 +489,26 @@ function Home() {
               {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando o leilão compartilhado…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar o leilão agora.' : 'Nenhum leilão por aqui ainda.'}</li>}
             </ul>
             {signedIn && <>
-              <h3 className="account-section">Movimentações</h3>
-              <ul className="account-list" data-testid="list-transactions">{account?.transactions.length ? account.transactions.map((tx) => <li className="account-list-row" key={tx.id} data-testid={`row-transaction-${tx.id}`}><span className="account-list-description">{tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span><span className={tx.amountCents > 0 ? 'account-amount-positive' : 'account-amount-negative'}>{tx.amountCents > 0 ? '+' : '−'}{money(Math.abs(tx.amountCents) / 100)}</span></li>) : <li className="account-empty">Suas movimentações aparecerão aqui.</li>}</ul>
+              <button className="account-statement-link" data-testid="button-account-statement" onClick={() => setSheet('statement')}>
+                <span className="account-statement-copy">
+                  <strong>Ver extrato</strong>
+                  <small>Recargas e lances da sua conta</small>
+                </span>
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
               <button className="danger-btn account-signout" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
               <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
             </>}
+          </div>}
+          {sheet === 'statement' && <div>
+            <ul className="account-list" data-testid="list-transactions">
+              {account?.transactions.length
+                ? account.transactions.map((tx) => <li className="account-list-row" key={tx.id} data-testid={`row-transaction-${tx.id}`}>
+                  <span className="account-list-description">{tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span>
+                  <span className={tx.amountCents > 0 ? 'account-amount-positive' : 'account-amount-negative'}>{tx.amountCents > 0 ? '+' : '−'}{money(Math.abs(tx.amountCents) / 100)}</span>
+                </li>)
+                : <li className="account-empty">Suas movimentações aparecerão aqui.</li>}
+            </ul>
           </div>}
           {sheet === 'signin' && <div className="signin-content">
             {googleChooserOpen ? <>
