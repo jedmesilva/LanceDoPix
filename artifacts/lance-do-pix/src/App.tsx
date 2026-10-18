@@ -361,7 +361,11 @@ function Home() {
   function renderPixKeyFields(label: string) {
     return <>
       <div className="key-grid">{(['CPF', 'Celular', 'E-mail', 'Aleatória'] as PixKeyType[]).map((type) => <label className="key-choice" key={type}><input type="radio" name="pix-type" data-testid={`radio-pix-${type.toLowerCase()}`} checked={pixType === type} onChange={() => { setPixType(type); setPixInput(''); setNotice(''); }} /><span>{type}</span></label>)}</div>
-      <label htmlFor="pix-key" className="muted">{label}</label><input id="pix-key" className="input-field" data-testid="input-pix-key" aria-describedby="pix-key-owner-note" autoComplete="off" inputMode={pixType === 'CPF' ? 'numeric' : pixType === 'Celular' ? 'tel' : pixType === 'E-mail' ? 'email' : 'text'} value={pixInput} placeholder={pixType === 'CPF' ? '000.000.000-00' : pixType === 'Celular' ? '(00) 00000-0000' : pixType === 'E-mail' ? 'seu@email.com' : 'Cole a chave aleatória'} onChange={(event) => setPixInput(event.target.value)} />
+      <div className="pix-key-field-heading">
+        <label htmlFor="pix-key" className="pix-key-field-label">{label}</label>
+        <p className="pix-key-field-help" id="pix-key-owner-note">A chave precisa estar no seu nome.</p>
+      </div>
+      <input id="pix-key" className="input-field" data-testid="input-pix-key" aria-describedby="pix-key-owner-note" autoComplete="off" inputMode={pixType === 'CPF' ? 'numeric' : pixType === 'Celular' ? 'tel' : pixType === 'E-mail' ? 'email' : 'text'} value={pixInput} placeholder={pixType === 'CPF' ? '000.000.000-00' : pixType === 'Celular' ? '(00) 00000-0000' : pixType === 'E-mail' ? 'seu@email.com' : 'Cole a chave aleatória'} onChange={(event) => setPixInput(event.target.value)} />
     </>;
   }
 
@@ -610,7 +614,6 @@ function Home() {
               </> : <>
                 <p className="muted">{selectedWin.maskedPixKey ? 'Escolha o tipo e informe a nova chave que vai receber o prêmio.' : 'Escolha o tipo e informe a chave que vai receber o prêmio.'}</p>
                 {renderPixKeyFields(selectedWin.maskedPixKey ? 'Nova chave Pix' : 'Sua chave Pix')}
-                <p className="fine" id="pix-key-owner-note">A chave precisa estar no seu nome.</p>
                 {notice && <p className="hint error" role="alert">{notice}</p>}
                 <button className="primary-btn" data-testid="button-save-pix-key" disabled={updateWinPixKeyMutation.isPending || !validPix(pixType, pixInput)} onClick={updatePixKey}>{updateWinPixKeyMutation.isPending ? 'Salvando…' : 'Salvar chave'}</button>
                 <button className="ghost-btn" data-testid="button-cancel-pix-key" style={{ width: '100%', marginTop: 8 }} onClick={() => { setIsEditingPixKey(false); setPixInput(''); setPixType(selectedWin.pixType ?? 'CPF'); setNotice(''); if (!selectedWin.maskedPixKey) setSheet(null); }}>{selectedWin.maskedPixKey ? 'Voltar' : 'Cancelar'}</button>

@@ -177,7 +177,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .package-grid, .key-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 17px 0 12px; }
 .package-btn { min-height: 55px; border: 1px solid hsl(var(--border)); border-radius: 13px; background: hsl(var(--background)); font-weight: 700; font-size: 17px; }
 .package-btn.selected { border-color: hsl(var(--primary)); box-shadow: inset 0 0 0 1px hsl(var(--primary)); background: hsl(var(--primary) / .08); }
-.fine { font-size: 12px; text-align: center; color: hsl(var(--muted-foreground)); margin: 13px 0; }
+.pix-key-field-heading { display: grid; gap: 4px; }
+.pix-key-field-label { font-size: 14px; font-weight: 700; }
+.pix-key-field-help { margin: 0; color: hsl(var(--muted-foreground)); font-size: 12px; line-height: 1.4; }
 .inline-error { padding: 11px 13px; border-radius: 12px; background: hsl(var(--destructive) / .09); color: hsl(var(--destructive)); font-size: 12px; line-height: 1.5; margin: 12px 0; }
 .demo-code { background: hsl(var(--background)); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 8px; margin: 14px 0; }
 .demo-code code { font: 11px var(--app-font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
