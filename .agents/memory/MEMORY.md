@@ -1,1 +1,2 @@
 - [Auth modal visual reference](auth-modal-visual-reference.md) — compare title/description grouping and spacing, not just matching copy and order.
+- [Lance do Pix copy rule](lance-do-pix-copy-rule.md) — never show user-facing notices or alerts that call the product a demo or simulation.

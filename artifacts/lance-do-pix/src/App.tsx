@@ -30,7 +30,7 @@ const withdrawalLabels: Record<AccountWinWithdrawalStatus, string> = {
   available: 'disponível',
   requested: 'Solicitado',
   under_review: 'Em análise',
-  paid: 'Pago',
+  paid: 'Concluído',
 };
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -152,7 +152,7 @@ function Home() {
       ? selectedWin.maskedPixKey
         ? isEditingPixKey ? 'Alterar chave Pix' : 'Confirmar resgate'
         : 'Informe sua chave Pix'
-      : selectedWin.withdrawalStatus === 'paid' ? 'Prêmio pago' : 'Resgate em análise';
+      : selectedWin.withdrawalStatus === 'paid' ? 'Resgate concluído' : 'Resgate em análise';
 
   useEffect(() => {
     try { localStorage.setItem('lance-do-pix-theme', theme); } catch { /* Theme preference is optional. */ }
@@ -600,7 +600,7 @@ function Home() {
           {sheet === 'withdrawal' && <div>
             {selectedWin ? <>
               {selectedWin.withdrawalStatus === 'available' ? selectedWin.maskedPixKey && !isEditingPixKey ? <>
-                <p className="muted">O valor será enviado para a chave Pix abaixo.</p>
+                <p className="muted withdrawal-note">Chave Pix cadastrada para este resgate:</p>
                 <div className="summary">
                   <div className="summary-row pix-confirm-key">
                     <span><small>Chave Pix ({selectedWin.pixType ?? 'Pix'})</small><strong data-testid="value-saved-pix-key">{selectedWin.maskedPixKey}</strong></span>
@@ -612,13 +612,13 @@ function Home() {
                 <button className="primary-btn" data-testid="button-request-withdrawal-saved-key" disabled={withdrawalMutation.isPending} onClick={startWithdrawal}>{withdrawalMutation.isPending ? 'Enviando…' : 'Confirmar resgate'}</button>
                 <button className="ghost-btn" data-testid="button-cancel-withdrawal" style={{ width: '100%', marginTop: 8 }} onClick={() => setSheet(null)}>Cancelar</button>
               </> : <>
-                <p className="muted">{selectedWin.maskedPixKey ? 'Escolha o tipo e informe a nova chave que vai receber o prêmio.' : 'Escolha o tipo e informe a chave que vai receber o prêmio.'}</p>
+                <p className="muted withdrawal-note">{selectedWin.maskedPixKey ? 'Informe a nova chave Pix para este resgate.' : 'Informe uma chave Pix para este resgate.'}</p>
                 {renderPixKeyFields(selectedWin.maskedPixKey ? 'Nova chave Pix' : 'Sua chave Pix')}
                 {notice && <p className="hint error" role="alert">{notice}</p>}
                 <button className="primary-btn" data-testid="button-save-pix-key" disabled={updateWinPixKeyMutation.isPending || !validPix(pixType, pixInput)} onClick={updatePixKey}>{updateWinPixKeyMutation.isPending ? 'Salvando…' : 'Salvar chave'}</button>
                 <button className="ghost-btn" data-testid="button-cancel-pix-key" style={{ width: '100%', marginTop: 8 }} onClick={() => { setIsEditingPixKey(false); setPixInput(''); setPixType(selectedWin.pixType ?? 'CPF'); setNotice(''); if (!selectedWin.maskedPixKey) setSheet(null); }}>{selectedWin.maskedPixKey ? 'Voltar' : 'Cancelar'}</button>
               </> : <>
-                <p className="muted" data-testid="status-withdrawal-message">{selectedWin.withdrawalStatus === 'paid' ? `O Pix de ${money((selectedWin.prizeCents + selectedWin.bonusCents) / 100)} foi enviado para a chave ${selectedWin.maskedPixKey ?? '••••'}.` : 'Estamos conferindo os dados. Você será avisado quando o Pix for enviado.'}</p>
+                <p className="muted withdrawal-note" data-testid="status-withdrawal-message">{selectedWin.withdrawalStatus === 'paid' ? `Resgate concluído. Valor: ${money((selectedWin.prizeCents + selectedWin.bonusCents) / 100)}. Chave Pix: ${selectedWin.maskedPixKey ?? '••••'}.` : 'Solicitação registrada. Acompanhe o status abaixo.'}</p>
                 {notice && <p className="hint error" role="alert">{notice}</p>}
                 <ol className="timeline" data-testid="list-withdrawal-timeline">{(['requested', 'under_review', 'paid'] as AccountWinWithdrawalStatus[]).map((status) => {
                   const order: AccountWinWithdrawalStatus[] = ['requested', 'under_review', 'paid'];
