@@ -87,6 +87,19 @@ function Home() {
   const isOwnLatestBid = auction?.isCurrentUserLastBid ?? false;
   const winningBidId = auction?.bids.at(-1)?.id ?? null;
   const currentWin = account?.wins.find((win) => win.winningBidId === winningBidId) ?? null;
+  const apiCurrentUserLastBidCents = auction?.currentUserLastBidAmountCents;
+  const recentCurrentUserLastBidCents = auction?.bids.slice().reverse().find((bid) => bid.isCurrentUser)?.amountCents;
+  const currentUserLastBidAmountCents =
+    typeof apiCurrentUserLastBidCents === 'number' &&
+    Number.isFinite(apiCurrentUserLastBidCents) &&
+    apiCurrentUserLastBidCents > 0
+      ? apiCurrentUserLastBidCents
+      : typeof recentCurrentUserLastBidCents === 'number' &&
+          Number.isFinite(recentCurrentUserLastBidCents) &&
+          recentCurrentUserLastBidCents > 0
+        ? recentCurrentUserLastBidCents
+        : null;
+  const hasParticipatedInCurrentAuction = currentUserLastBidAmountCents !== null;
   const [sheet, setSheet] = useState<'account' | 'statement' | 'topup' | 'signin' | 'win' | 'withdrawal' | 'rules' | null>(null);
   const sheetRef = useRef<HTMLElement | null>(null);
   const [selectedWinId, setSelectedWinId] = useState<number | null>(null);
@@ -94,7 +107,10 @@ function Home() {
     ? currentWin
     : account?.wins.find((win) => win.id === selectedWinId) ?? null;
   const winningBid = auction?.bids.find((bid) => bid.id === selectedWin?.winningBidId) ?? null;
-  const showSharedAuction = Boolean(auction && !(signedIn && currentWin));
+  const showSharedAuction = Boolean(
+    auction &&
+    (!signedIn || (hasParticipatedInCurrentAuction && !currentWin)),
+  );
   const [topupStep, setTopupStep] = useState<1 | 2 | 3>(1);
   const [packageAmountCents, setPackageAmountCents] = useState(10_000);
   const [bidInput, setBidInput] = useState('');
@@ -467,8 +483,8 @@ function Home() {
                 <span className="account-list-description">
                   <span className="account-list-label">{status === 'closed' ? 'Prêmio' : 'Prêmio em disputa'}</span>
                   <strong className="account-prize">{money(auction.prizeCents / 100)}</strong>
-                  {auction.currentUserLastBidAmountCents !== null && <small className="account-list-detail">
-                    Seu lance <strong>{money(auction.currentUserLastBidAmountCents / 100)}</strong>
+                  {currentUserLastBidAmountCents !== null && <small className="account-list-detail">
+                    Seu lance <strong>{money(currentUserLastBidAmountCents / 100)}</strong>
                   </small>}
                 </span>
                 <span className={`account-tag ${status === 'closed' ? '' : 'account-tag-live'}`} role="status">
@@ -476,7 +492,7 @@ function Home() {
                     ? 'Encerrado'
                     : auction.isCurrentUserLastBid
                       ? 'Você está ganhando'
-                      : auction.currentUserLastBidAmountCents !== null
+                      : hasParticipatedInCurrentAuction
                         ? 'Cobriram seu lance'
                         : 'Em andamento'}
                 </span>
@@ -493,6 +509,7 @@ function Home() {
                   ? <button className="account-pill account-pill-small auction-action" data-testid="button-history-redeem" aria-label={`Resgatar prêmio de ${money(win.prizeCents / 100)}`} onClick={() => openWithdrawal(win.id)}>Resgatar</button>
                   : <button className={`account-tag account-tag-button auction-action ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" aria-label={`Ver status do prêmio: ${win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}`} onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}</button>}
               </li>)}
+              {signedIn && auction && !showSharedAuction && !account?.wins.length && <li className="account-empty">Você ainda não participou de nenhum leilão.</li>}
               {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando o leilão compartilhado…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar o leilão agora.' : 'Nenhum leilão por aqui ainda.'}</li>}
             </ul>
             {signedIn && <>
