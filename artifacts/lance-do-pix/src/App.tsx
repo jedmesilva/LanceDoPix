@@ -469,7 +469,10 @@ function Home() {
             {signedIn ? <div className="account-balance">
                 <span className="account-balance-label">Créditos</span>
                 <strong data-testid="value-account-credits">{money(credits)}</strong>
-                <button className="account-pill" data-testid="button-account-topup" onClick={() => openTopup()}>Adicionar</button>
+                <button className="account-pill account-pill-topup" data-testid="button-account-topup" onClick={() => openTopup()}>
+                  <Plus size={16} aria-hidden="true" />
+                  Adicionar
+                </button>
                 <button className="account-statement-link" data-testid="button-account-statement" onClick={() => setSheet('statement')}>
                   <span className="account-statement-copy">
                     <strong>Ver extrato</strong>
