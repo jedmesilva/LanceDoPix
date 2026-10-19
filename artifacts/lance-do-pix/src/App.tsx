@@ -510,7 +510,12 @@ function Home() {
                   </span>
                 </div>
                 <div className="account-list-prize-row">
-                  <strong className="account-prize">{money(auction.prizeCents / 100)}</strong>
+                  <div className="account-list-prize-info">
+                    <strong className="account-prize">{money(auction.prizeCents / 100)}</strong>
+                    {auction.bonusCents > 0 && <span className="account-prize-bonus" data-testid="value-current-auction-bonus">
+                      + {money(auction.bonusCents / 100)} de bônus
+                    </span>}
+                  </div>
                 </div>
                 {currentUserLastBidAmountCents !== null && <div className="account-list-bid">
                   <span>Seu lance</span>
@@ -543,7 +548,12 @@ function Home() {
                       </button>}
                   </div>
                   <div className="account-list-prize-row">
-                    <strong className="account-prize">{money(win.prizeCents / 100)}</strong>
+                    <div className="account-list-prize-info">
+                      <strong className="account-prize">{money(win.prizeCents / 100)}</strong>
+                      {win.bonusCents > 0 && <span className="account-prize-bonus" data-testid={`value-auction-bonus-${win.id}`}>
+                        + {money(win.bonusCents / 100)} de bônus
+                      </span>}
+                    </div>
                     {hasPrizeAvailable && <button
                       className="account-pill account-list-redeem auction-action"
                       data-testid="button-history-redeem"

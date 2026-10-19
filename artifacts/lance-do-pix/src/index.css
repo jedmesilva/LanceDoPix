@@ -156,6 +156,8 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .account-list-status-button { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; font-size: 14px; font-weight: 700; line-height: 1.2; cursor: pointer; }
 .account-list-status-button:focus-visible, .account-list-redeem:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
 .account-auction-list .account-prize { display: block; min-width: 0; margin: 0; font-size: clamp(26px, 8vw, 32px); font-weight: 800; letter-spacing: -.045em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.account-list-prize-info { flex: 1; min-width: 0; }
+.account-prize-bonus { display: block; margin-top: 6px; color: hsl(var(--primary)); font-size: 15px; font-weight: 700; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .account-list-auction-card-outbid .account-prize { color: hsl(var(--muted-foreground)); }
 .account-list-redeem { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 20px; font-size: 15px; }
 .account-list-bid { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 10px 14px; border-radius: 14px; background: hsl(var(--background)); color: hsl(var(--muted-foreground)); font-size: 15px; line-height: 1.25; }
@@ -190,6 +192,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @media (max-width: 440px) {
   .account-list-row { gap: 8px; }
   .account-auction-list .account-prize { font-size: clamp(24px, 8vw, 30px); }
+  .account-prize-bonus { font-size: 14px; }
   .account-list-redeem { height: 40px; padding: 0 16px; font-size: 14px; }
   .account-action { max-width: 42%; }
 }
