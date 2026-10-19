@@ -443,7 +443,7 @@ function Home() {
         <div className="auction-content">
           <section aria-labelledby="auction-title" aria-busy={isAuctionLoading}>
             <h1 className="hero-kicker" id="auction-title">Prêmio em disputa</h1>
-            <p className="lead">O último lance leva</p>
+            <p className="lead">O último lance leva tudo</p>
             <p className="prize" data-testid="value-prize">
               <small>R$</small>
               {isAuctionLoading
