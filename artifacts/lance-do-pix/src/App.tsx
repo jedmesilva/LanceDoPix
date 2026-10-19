@@ -561,7 +561,7 @@ function Home() {
                       : auction.isCurrentUserLastBid
                         ? 'Você está ganhando'
                         : hasParticipatedInCurrentAuction
-                          ? 'Cobriram seu lance'
+                          ? 'Lance superado'
                           : 'Em andamento'}
                   </span>
                 </div>
