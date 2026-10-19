@@ -134,7 +134,10 @@ function Home() {
     return 'light';
   });
   const [announcement, setAnnouncement] = useState('');
-  const [seenWinId, setSeenWinId] = useState<number | null>(null);
+  const lastAuctionSnapshotRef = useRef<{ winningBidId: number | null; status: string } | null>(null);
+  const pageWasHiddenRef = useRef(false);
+  const pendingWinBidIdRef = useRef<number | null>(null);
+  const shownWinIdsRef = useRef(new Set<number>());
   const amount = Number(bidInput.replace(',', '.'));
   const amountValid = Number.isFinite(amount) && amount > 0;
   const auctionState = status === 'closed' ? 'closed' : status === 'urgent' ? 'urgent' : 'live';
@@ -180,6 +183,18 @@ function Home() {
   }, [remaining]);
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') {
+        pageWasHiddenRef.current = true;
+        pendingWinBidIdRef.current = null;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  useEffect(() => {
     if (!sheet) return undefined;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setSheet(null);
@@ -195,18 +210,54 @@ function Home() {
   }, [sheet]);
 
   useEffect(() => {
-    if (status !== 'closed' || !isOwnLatestBid) return;
+    if (!auction) return;
 
-    setSheet('win');
-    if (!currentWin) {
-      void queryClient.invalidateQueries({ queryKey: getGetCurrentAccountQueryKey() });
+    const currentSnapshot = { winningBidId, status };
+    if (document.visibilityState !== 'visible') {
+      lastAuctionSnapshotRef.current = currentSnapshot;
+      pageWasHiddenRef.current = true;
+      pendingWinBidIdRef.current = null;
       return;
     }
-    if (seenWinId !== currentWin.id) {
-      setSelectedWinId(currentWin.id);
-      setSeenWinId(currentWin.id);
+
+    // After returning to the tab, use the next server snapshot as a baseline.
+    // This prevents a close that happened while the user was away from opening the modal.
+    if (pageWasHiddenRef.current) {
+      lastAuctionSnapshotRef.current = currentSnapshot;
+      pageWasHiddenRef.current = false;
+      pendingWinBidIdRef.current = null;
+      return;
     }
-  }, [status, isOwnLatestBid, currentWin?.id, seenWinId, queryClient]);
+
+    const previousSnapshot = lastAuctionSnapshotRef.current;
+    lastAuctionSnapshotRef.current = currentSnapshot;
+
+    if (!previousSnapshot || previousSnapshot.winningBidId !== winningBidId) {
+      pendingWinBidIdRef.current = null;
+    } else if (previousSnapshot.status !== 'closed' && status === 'closed' && signedIn && isOwnLatestBid && winningBidId !== null) {
+      pendingWinBidIdRef.current = winningBidId;
+      if (!currentWin) {
+        void queryClient.invalidateQueries({ queryKey: getGetCurrentAccountQueryKey() });
+      }
+    }
+
+    const pendingWinBidId = pendingWinBidIdRef.current;
+    if (pendingWinBidId === null) return;
+    if (pendingWinBidId !== winningBidId || status !== 'closed' || !signedIn || !isOwnLatestBid) {
+      pendingWinBidIdRef.current = null;
+      return;
+    }
+    if (!currentWin) return;
+    if (shownWinIdsRef.current.has(currentWin.id)) {
+      pendingWinBidIdRef.current = null;
+      return;
+    }
+
+    pendingWinBidIdRef.current = null;
+    shownWinIdsRef.current.add(currentWin.id);
+    setSelectedWinId(currentWin.id);
+    setSheet('win');
+  }, [auction, auctionQuery.dataUpdatedAt, currentWin?.id, isOwnLatestBid, queryClient, signedIn, status, winningBidId]);
 
   function updateBid(value: number) {
     setBidInput((Math.round(value * 100) / 100).toFixed(2).replace('.', ','));
@@ -340,7 +391,12 @@ function Home() {
         setTheme('light');
         setBidInput((resetAuction.minimumBidCents / 100).toFixed(2).replace('.', ','));
         setSelectedWinId(null);
-        setSeenWinId(null);
+        lastAuctionSnapshotRef.current = {
+          winningBidId: resetAuction.bids.at(-1)?.id ?? null,
+          status: resetAuction.status,
+        };
+        pendingWinBidIdRef.current = null;
+        shownWinIdsRef.current.clear();
         setNotice('Leilão reiniciado.');
         setSheet(null);
       },
