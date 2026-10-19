@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conta · Meus lances</title>
+<style>
+:root{
+  --bg:#6f7472; --sheet:#fff; --panel:#f3f5f4; --ink:#0f1f1a; --mid:#4f5f58; --soft:#7b8a83;
+  --line:#e2e7e5; --brand:#17a98c; --brand-ink:#0f1f1a; --brand-text:#0d7a65;
+  --chip:#e8eceb; --danger:#c43434; --focus:#1f5aa6;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1210; --sheet:#121c18; --panel:#1a2723; --ink:#eef4f1; --mid:#aebbb5; --soft:#7f8e87;
+    --line:#26352f; --chip:#243430; --brand-text:#4fd1b3; --danger:#ff7b7b; --focus:#9cc4f5;
+  }
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--sheet);width:100%;max-width:440px;max-height:100%;overflow-y:auto;border-radius:28px 28px 0 0;padding:24px 20px calc(28px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;gap:14px}
+.avatar{width:52px;height:52px;border-radius:50%;background:var(--ink);color:var(--sheet);display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.who{flex:1;min-width:0}
+.who b{display:block;font-size:19px}
+.who span{font-size:14px;color:var(--soft)}
+.x{width:40px;height:40px;border-radius:50%;border:0;background:var(--chip);color:var(--ink);font-size:20px;cursor:pointer}
+.credits{margin-top:20px;background:var(--panel);border-radius:20px;padding:18px;display:flex;align-items:center;justify-content:space-between}
+.credits small{display:block;color:var(--mid);font-size:14px}
+.credits strong{font-size:28px;letter-spacing:-.5px}
+.btn{border:0;border-radius:999px;background:var(--brand);color:var(--brand-ink);font:inherit;font-weight:700;cursor:pointer}
+.btn:focus-visible,.x:focus-visible,.logout:focus-visible,.extract:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.credits .btn{padding:12px 22px;font-size:15px}
+.extract{display:block;margin-top:2px;font-size:12px;color:var(--brand-text);background:none;border:0;padding:0;font-weight:600;cursor:pointer}
+h2{margin:28px 0 12px;font-size:17px;color:var(--mid)}
+.list{list-style:none;padding:0;display:flex;flex-direction:column;gap:12px}
+
+.card{border:1px solid var(--line);border-radius:20px;padding:14px 14px 12px}
+.row1,.row2{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lbl{font-size:13px;font-weight:600;color:var(--mid)}
+.status{font-size:13px;font-weight:700;color:var(--brand-text);text-align:right}
+.status.lost{color:var(--soft)}
+.status.paid{color:var(--soft)}
+.status.paid::before{content:"✓ "}
+.row2{margin-top:2px;min-height:44px}
+.prize{font-size:32px;font-weight:800;letter-spacing:-.8px;line-height:1.1}
+.row2 .btn{padding:12px 22px;font-size:15px;flex:none}
+.mine{margin-top:10px;background:var(--panel);border-radius:14px;padding:10px 14px;display:flex;justify-content:space-between;font-size:14px;color:var(--mid)}
+.mine b{color:var(--ink);font-weight:700}
+.card.lost .prize{opacity:.4}
+
+.logout{margin-top:24px;width:100%;padding:16px;border-radius:999px;border:2px solid var(--line);background:none;color:var(--danger);font:inherit;font-size:17px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<main class="sheet" aria-label="Minha conta">
+  <header class="top">
+    <div class="avatar">MS</div>
+    <div class="who"><b>Marina Souza</b><span>marina@email.com</span></div>
+    <button class="x" aria-label="Fechar">✕</button>
+  </header>
+
+  <section class="credits">
+    <div>
+      <small>Créditos</small>
+      <strong>R$ 250,00</strong>
+      <button class="extract">Ver extrato</button>
+    </div>
+    <button class="btn">Adicionar</button>
+  </section>
+
+  <h2>Meus lances</h2>
+  <ul class="list" id="list"></ul>
+
+  <button class="logout">Sair da conta</button>
+</main>
+
+<script>
+const bids = [
+  {prize:"R$ 1.000,00", bid:"R$ 157", state:"live"},
+  {prize:"R$ 500,00",   bid:"R$ 12",  state:"lost"},
+  {prize:"R$ 100,00",   bid:"R$ 45",  state:"won"},
+  {prize:"R$ 250,00",   bid:"R$ 82",  state:"paid"}
+];
+const STATUS = {
+  live:["Você está ganhando",""],
+  won:["Você ganhou",""],
+  lost:["Cobriram seu lance","lost"],
+  paid:["Resgatado","paid"]
+};
+
+function render(){
+  document.getElementById("list").innerHTML = bids.map((b,i)=>{
+    const [txt,cls] = STATUS[b.state];
+    return '<li class="card '+(b.state==="lost"?"lost":"")+'">'+
+      '<div class="row1"><span class="lbl">Prêmio</span><span class="status '+cls+'">'+txt+'</span></div>'+
+      '<div class="row2"><span class="prize">'+b.prize+'</span>'+
+        (b.state==="won"?'<button class="btn" data-i="'+i+'">Resgatar</button>':'')+
+      '</div>'+
+      '<div class="mine"><span>'+(b.state==="won"?"Seu lance vencedor":"Seu lance")+'</span><b>'+b.bid+'</b></div>'+
+    '</li>';
+  }).join("");
+}
+
+document.getElementById("list").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-i]");
+  if(!btn) return;
+  bids[btn.dataset.i].state = "paid";
+  render();
+});
+render();
+</script>
+</body>
+</html>

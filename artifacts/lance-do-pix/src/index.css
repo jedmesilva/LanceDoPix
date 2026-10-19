@@ -138,6 +138,29 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .account-section { margin: 20px 0 4px; color: hsl(var(--muted-foreground)); font-size: 15px; font-weight: 700; }
 .account-list { list-style: none; margin: 0; padding: 0; }
 .account-list-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 15px 0; border-top: 1px solid hsl(var(--border)); font-size: 15px; font-variant-numeric: tabular-nums; }
+.account-auction-list { display: flex; flex-direction: column; gap: 12px; }
+.account-auction-list .account-list-auction-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px 14px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 20px;
+  background: hsl(var(--card));
+}
+.account-list-card-top, .account-list-prize-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.account-auction-list .account-list-label { display: block; color: hsl(var(--muted-foreground)); font-size: 14px; font-weight: 600; line-height: 1.2; }
+.account-list-status { flex: none; max-width: 66%; color: hsl(var(--muted-foreground)); font-size: 14px; font-weight: 700; line-height: 1.2; text-align: right; white-space: nowrap; }
+.account-list-status-live { color: hsl(var(--primary)); }
+.account-list-status-muted { color: hsl(var(--muted-foreground)); }
+.account-list-status-button { padding: 0; border: 0; background: transparent; color: inherit; font-family: inherit; font-size: 14px; font-weight: 700; line-height: 1.2; cursor: pointer; }
+.account-list-status-button:focus-visible, .account-list-redeem:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+.account-auction-list .account-prize { display: block; min-width: 0; margin: 0; font-size: clamp(26px, 8vw, 32px); font-weight: 800; letter-spacing: -.045em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.account-list-auction-card-outbid .account-prize { color: hsl(var(--muted-foreground)); }
+.account-list-redeem { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 20px; font-size: 15px; }
+.account-list-bid { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 10px 14px; border-radius: 14px; background: hsl(var(--background)); color: hsl(var(--muted-foreground)); font-size: 15px; line-height: 1.25; }
+.account-list-bid strong { color: hsl(var(--foreground)); font-size: 16px; font-weight: 700; white-space: nowrap; }
+.account-list-bid-missing { justify-content: flex-start; font-size: 13px; }
 .account-list-description { flex: 1; min-width: 0; }
 .account-list-label { display: block; color: hsl(var(--muted-foreground)); font-size: 12px; line-height: 1.2; }
 .account-prize { display: block; margin-top: 2px; font-size: 23px; font-weight: 800; letter-spacing: -.04em; line-height: 1.1; }
@@ -166,7 +189,8 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .statement-heading h2 { color: hsl(var(--foreground)); font-size: 21px; font-weight: 700; letter-spacing: -.035em; margin: 0; }
 @media (max-width: 440px) {
   .account-list-row { gap: 8px; }
-  .account-prize { font-size: 21px; }
+  .account-auction-list .account-prize { font-size: clamp(24px, 8vw, 30px); }
+  .account-list-redeem { height: 40px; padding: 0 16px; font-size: 14px; }
   .account-action { max-width: 42%; }
 }
 .sheet-section { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--muted-foreground)); margin: 19px 0 6px; }

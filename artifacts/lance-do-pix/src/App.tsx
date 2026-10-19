@@ -489,24 +489,33 @@ function Home() {
                 <button className="primary-btn" data-testid="button-account-signin" onClick={openSignIn}>Entrar para dar lances</button>
               </div>}
             <h3 className="account-section">{signedIn ? 'Meus leilões' : 'Leilão'}</h3>
-            <ul className="account-list" data-testid="list-auction-history">
-              {showSharedAuction && auction && <li className="account-list-row" data-testid="row-auction-current">
-                <span className="account-list-description">
-                  <span className="account-list-label">{status === 'closed' ? 'Prêmio' : 'Prêmio em disputa'}</span>
+            <ul className="account-list account-auction-list" data-testid="list-auction-history">
+              {showSharedAuction && auction && <li
+                className={`account-list-row account-list-auction-card ${hasParticipatedInCurrentAuction && !auction.isCurrentUserLastBid ? 'account-list-auction-card-outbid' : ''}`}
+                data-testid="row-auction-current"
+              >
+                <div className="account-list-card-top">
+                  <span className="account-list-label">Prêmio</span>
+                  <span
+                    className={`account-list-status ${status !== 'closed' && auction.isCurrentUserLastBid ? 'account-list-status-live' : 'account-list-status-muted'}`}
+                    role="status"
+                  >
+                    {status === 'closed'
+                      ? 'Encerrado'
+                      : auction.isCurrentUserLastBid
+                        ? 'Você está ganhando'
+                        : hasParticipatedInCurrentAuction
+                          ? 'Cobriram seu lance'
+                          : 'Em andamento'}
+                  </span>
+                </div>
+                <div className="account-list-prize-row">
                   <strong className="account-prize">{money(auction.prizeCents / 100)}</strong>
-                  {currentUserLastBidAmountCents !== null && <small className="account-list-detail">
-                    Seu lance <strong>{money(currentUserLastBidAmountCents / 100)}</strong>
-                  </small>}
-                </span>
-                <span className={`account-tag ${status === 'closed' ? '' : 'account-tag-live'}`} role="status">
-                  {status === 'closed'
-                    ? 'Encerrado'
-                    : auction.isCurrentUserLastBid
-                      ? 'Você está ganhando'
-                      : hasParticipatedInCurrentAuction
-                        ? 'Cobriram seu lance'
-                        : 'Em andamento'}
-                </span>
+                </div>
+                {currentUserLastBidAmountCents !== null && <div className="account-list-bid">
+                  <span>Seu lance</span>
+                  <strong>{money(currentUserLastBidAmountCents / 100)}</strong>
+                </div>}
               </li>}
               {signedIn && account?.wins.slice(0, showSharedAuction ? 3 : 4).map((win) => {
                 const currentAuctionBidAmountCents = auction?.bids.find((bid) => bid.id === win.winningBidId)?.amountCents;
@@ -516,20 +525,40 @@ function Home() {
                     : isValidBidAmountCents(currentAuctionBidAmountCents)
                       ? currentAuctionBidAmountCents
                       : null;
+                const hasPrizeAvailable = win.withdrawalStatus === 'available';
+                const hasPrizeBeenPaid = win.withdrawalStatus === 'paid';
 
-                return <li className="account-list-row" key={win.id} data-testid={`row-auction-win-${win.id}`}>
-                  <span className="account-list-description">
+                return <li className="account-list-row account-list-auction-card" key={win.id} data-testid={`row-auction-win-${win.id}`}>
+                  <div className="account-list-card-top">
                     <span className="account-list-label">Prêmio</span>
+                    {hasPrizeAvailable
+                      ? <span className="account-list-status account-list-status-live" role="status">Você ganhou</span>
+                      : <button
+                        className={`account-list-status account-list-status-button ${hasPrizeBeenPaid ? 'account-list-status-muted account-list-status-paid' : 'account-list-status-muted'}`}
+                        data-testid="button-history-status"
+                        aria-label={`Ver status do prêmio: ${hasPrizeBeenPaid ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}`}
+                        onClick={() => openWithdrawal(win.id)}
+                      >
+                        {hasPrizeBeenPaid ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}
+                      </button>}
+                  </div>
+                  <div className="account-list-prize-row">
                     <strong className="account-prize">{money(win.prizeCents / 100)}</strong>
-                    {winningBidAmountCents !== null
-                      ? <small className="account-list-detail">
-                        Você ganhou com lance de <strong>{money(winningBidAmountCents / 100)}</strong>
-                      </small>
-                      : <small className="account-list-detail">Valor do lance indisponível</small>}
-                  </span>
-                  {win.withdrawalStatus === 'available'
-                    ? <button className="account-pill account-pill-small auction-action" data-testid="button-history-redeem" aria-label={`Resgatar prêmio de ${money(win.prizeCents / 100)}`} onClick={() => openWithdrawal(win.id)}>Resgatar</button>
-                    : <button className={`account-tag account-tag-button auction-action ${win.withdrawalStatus === 'paid' ? 'account-tag-paid' : ''}`} data-testid="button-history-status" aria-label={`Ver status do prêmio: ${win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}`} onClick={() => openWithdrawal(win.id)}>{win.withdrawalStatus === 'paid' ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}</button>}
+                    {hasPrizeAvailable && <button
+                      className="account-pill account-list-redeem auction-action"
+                      data-testid="button-history-redeem"
+                      aria-label={`Resgatar prêmio de ${money(win.prizeCents / 100)}`}
+                      onClick={() => openWithdrawal(win.id)}
+                    >
+                      Resgatar
+                    </button>}
+                  </div>
+                  <div className={`account-list-bid ${winningBidAmountCents === null ? 'account-list-bid-missing' : ''}`}>
+                    {winningBidAmountCents !== null ? <>
+                      <span>{hasPrizeAvailable ? 'Seu lance vencedor' : 'Seu lance'}</span>
+                      <strong>{money(winningBidAmountCents / 100)}</strong>
+                    </> : <span>Valor do lance indisponível</span>}
+                  </div>
                 </li>;
               })}
               {signedIn && auction && !showSharedAuction && !account?.wins.length && <li className="account-empty">Você ainda não participou de nenhum leilão.</li>}
