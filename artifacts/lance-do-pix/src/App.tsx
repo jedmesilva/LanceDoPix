@@ -532,6 +532,11 @@ function Home() {
                       : null;
                 const hasPrizeAvailable = win.withdrawalStatus === 'available';
                 const hasPrizeBeenPaid = win.withdrawalStatus === 'paid';
+                const withdrawalCardStatus = hasPrizeBeenPaid
+                  ? 'Resgatado'
+                  : win.withdrawalStatus === 'requested'
+                    ? 'Resgate solicitado'
+                    : withdrawalLabels[win.withdrawalStatus];
 
                 return <li className="account-list-row account-list-auction-card" key={win.id} data-testid={`row-auction-win-${win.id}`}>
                   <div className="account-list-card-top">
@@ -541,10 +546,10 @@ function Home() {
                       : <button
                         className={`account-list-status account-list-status-button ${hasPrizeBeenPaid ? 'account-list-status-muted account-list-status-paid' : 'account-list-status-muted'}`}
                         data-testid="button-history-status"
-                        aria-label={`Ver status do prêmio: ${hasPrizeBeenPaid ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}`}
+                        aria-label={`Ver status do prêmio: ${withdrawalCardStatus}`}
                         onClick={() => openWithdrawal(win.id)}
                       >
-                        {hasPrizeBeenPaid ? 'Resgatado' : withdrawalLabels[win.withdrawalStatus]}
+                        {withdrawalCardStatus}
                       </button>}
                   </div>
                   <div className="account-list-prize-row">
@@ -562,6 +567,9 @@ function Home() {
                     >
                       Resgatar
                     </button>}
+                    {win.withdrawalStatus === 'requested' && <span className="account-list-action-status" role="status">
+                      Em análise
+                    </span>}
                   </div>
                   <div className={`account-list-bid ${winningBidAmountCents === null ? 'account-list-bid-missing' : ''}`}>
                     {winningBidAmountCents !== null ? <>
