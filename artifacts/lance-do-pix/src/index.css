@@ -100,7 +100,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .amount-wrap { height: 52px; border: 1px solid hsl(var(--border)); border-radius: 13px; display: flex; align-items: center; padding: 0 13px; gap: 5px; background: hsl(var(--background)); }
 .amount-wrap span { font-size: 14px; color: hsl(var(--muted-foreground)); font-weight: 600; }
 .amount-wrap input { width: 100%; min-width: 0; border: 0; outline: none; background: transparent; text-align: center; font: 700 23px var(--app-font-mono); color: hsl(var(--foreground)); }
-.quick-bids { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 9px; }
+.quick-bids { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 9px 0 12px; }
 .quick-bids button { height: 36px; border: 0; border-radius: 10px; background: hsl(var(--secondary)); font-size: 14px; font-weight: 700; }
 .hint { min-height: 38px; margin: 12px 0 3px; font-size: 13px; color: hsl(var(--muted-foreground)); line-height: 1.45; }
 .hint.error { color: hsl(var(--destructive)); font-weight: 600; }
