@@ -72,9 +72,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   58% { transform: scale(1.012); text-shadow: 0 0 7px hsl(var(--primary) / .18); filter: brightness(1.04); }
   100% { transform: scale(1); text-shadow: 0 0 0 hsl(var(--primary) / 0); filter: brightness(1); }
 }
-.timer-row { margin-top: 30px; display: flex; align-items: baseline; gap: 13px; }
+.timer-row { margin-top: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .timer { font: 500 32px var(--app-font-mono); letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
-.timer-label { font-size: 15px; color: hsl(var(--muted-foreground)); }
+.timer-label { font-size: 13px; color: hsl(var(--muted-foreground)); line-height: 1.35; }
 .timer-label:before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--primary)); margin-right: 8px; animation: pulse 1.5s infinite; }
 .progress-track { height: 4px; background: hsl(var(--border)); border-radius: 99px; margin-top: 14px; overflow: hidden; }
 .progress-fill { height: 100%; background: hsl(var(--primary)); border-radius: inherit; transition: width .3s linear; }
@@ -104,14 +104,27 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .bid-skeleton { align-items: center; min-height: 46px; }
 .bid-skeleton-amount { width: 96px; height: 18px; border-radius: 5px; }
 .bid-skeleton-time { width: 52px; height: 14px; border-radius: 4px; }
-.rules { border-top: 1px solid hsl(var(--border)); }
-.rules summary { height: 54px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; list-style: none; font-weight: 700; }
-.rules summary::-webkit-details-marker { display: none; }
-.rules-body { padding: 0 0 18px; color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 1.7; }
-.rules-body p { margin: 0; }
-.rules-body p + p { margin-top: 8px; }
+.auction-live-status { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 12px; margin-top: 20px; }
+.auction-timer-panel, .current-bid-panel { min-width: 0; min-height: 106px; border: 1px solid hsl(var(--border)); border-radius: 18px; background: hsl(var(--card)); padding: 16px; }
+.auction-timer-panel { display: flex; flex-direction: column; justify-content: center; }
+.auction-timer-panel .progress-track { margin-top: 12px; }
+.current-bid-panel { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: hsl(var(--primary) / .07); border-color: hsl(var(--primary) / .2); }
+.current-bid-copy { display: grid; gap: 5px; min-width: 0; }
+.current-bid-label { color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.current-bid-value { font-size: 24px; font-weight: 800; letter-spacing: -.04em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.current-bid-panel time { flex: none; color: hsl(var(--muted-foreground)); font-size: 12px; font-variant-numeric: tabular-nums; }
+.current-bid-empty { color: hsl(var(--muted-foreground)); font-size: 14px; }
+.dock-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 13px; }
 .dock { position: sticky; top: 88px; border: 1px solid hsl(var(--border)); border-radius: 24px; padding: 24px; background: hsl(var(--card)); box-shadow: 0 18px 50px hsl(163 25% 10% / .05); }
-.dock-eyebrow { color: hsl(var(--muted-foreground)); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 13px; }
+.dock-eyebrow { color: hsl(var(--muted-foreground)); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.rules-link { min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 9px; padding: 0 4px; background: transparent; color: hsl(var(--primary)); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.rules-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.rules-content { padding-bottom: 4px; }
+.rules-list { display: grid; gap: 17px; list-style: none; margin: 0; padding: 0; }
+.rules-list li { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: start; gap: 12px; }
+.rules-step-number { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: hsl(var(--primary) / .12); color: hsl(var(--primary)); font: 500 11px var(--app-font-mono); }
+.rules-list h3 { margin: 1px 0 4px; font-size: 14px; font-weight: 700; line-height: 1.4; }
+.rules-list p { margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 1.55; }
 .stepper { display: grid; grid-template-columns: 50px minmax(0, 1fr) 50px; gap: 8px; }
 .stepper button { border: 0; background: hsl(var(--secondary)); border-radius: 13px; font-size: 25px; font-weight: 600; }
 .amount-wrap { height: 52px; border: 1px solid hsl(var(--border)); border-radius: 13px; display: flex; align-items: center; padding: 0 13px; gap: 5px; background: hsl(var(--background)); }
@@ -290,12 +303,23 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .auction-content { gap: 30px; }
   .dock { position: sticky; top: auto; bottom: 0; z-index: 10; margin: 0 -18px -36px; border-radius: 22px 22px 0 0; padding: 16px 18px calc(14px + env(safe-area-inset-bottom)); width: calc(100% + 36px); box-shadow: 0 -12px 28px hsl(160 25% 8% / .08); }
   .prize { font-size: clamp(62px, 17vw, 88px); }
-  .timer { font-size: 28px; }
+  .auction-live-status { gap: 8px; margin-top: 16px; }
+  .auction-timer-panel, .current-bid-panel { min-height: 96px; padding: 12px; border-radius: 16px; }
+  .timer { font-size: clamp(24px, 7vw, 29px); }
+  .timer-label { font-size: 11px; }
+  .current-bid-value { font-size: clamp(19px, 5.6vw, 23px); }
+  .current-bid-panel time { font-size: 10px; }
+  .dock-heading { margin-bottom: 10px; }
+  .rules-link { min-height: 38px; }
   .head-actions { gap: 7px; }
   .demo-tag { display: none; }
 }
 @media (max-width: 380px) {
   .top-inner { padding: 0 12px; }
+  .auction-live-status { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 7px; }
+  .auction-timer-panel, .current-bid-panel { padding: 10px; }
+  .current-bid-value { font-size: 18px; }
+  .current-bid-panel time { font-size: 9px; }
   .head-actions { gap: 5px; }
   .sign-in { min-height: 38px; padding: 0 10px; font-size: 14px; }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, ChevronRight, LogIn, Moon, Plus, Sun, Trophy, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, CircleHelp, LogIn, Moon, Plus, Sun, Trophy, X } from 'lucide-react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import {
@@ -504,7 +504,7 @@ function Home() {
         <div className="auction-content">
           <section aria-labelledby="auction-title" aria-busy={isAuctionLoading}>
             <h1 className="hero-kicker" id="auction-title">Prêmio em disputa</h1>
-            <p className="lead">O último lance leva tudo</p>
+            <p className="lead">Quando o relógio zerar, o último lance leva o prêmio.</p>
             <p className="prize" data-testid="value-prize">
               <small>R$</small>
               {isAuctionLoading
@@ -512,45 +512,63 @@ function Home() {
                 : <span>{prizeLabel}</span>}
             </p>
             <AnimatedBonus amount={bonusAmount} />
-            <div className="timer-row" role="timer" aria-label={isAuctionLoading ? 'Carregando dados da disputa' : `Tempo restante: ${timeLabel(remaining)}`} aria-busy={isAuctionLoading} data-testid="status-countdown">
-              {isAuctionLoading ? <>
-                <span className="timer loading-skeleton timer-skeleton" aria-hidden="true" />
-                <span className="timer-label">Carregando disputa…</span>
-              </> : <>
-                <span className="timer" aria-hidden="true">{timeLabel(remaining)}</span>
-                <span className="timer-label">{status === 'closed' ? 'disputa encerrada' : status === 'urgent' ? 'últimos segundos da disputa' : 'para encerrar a disputa'}</span>
-              </>}
+            <div className="auction-live-status">
+              <div className="auction-timer-panel">
+                <div className="timer-row" role="timer" aria-label={isAuctionLoading ? 'Carregando dados da disputa' : `Tempo restante: ${timeLabel(remaining)}`} aria-busy={isAuctionLoading} data-testid="status-countdown">
+                  {isAuctionLoading ? <>
+                    <span className="timer loading-skeleton timer-skeleton" aria-hidden="true" />
+                    <span className="timer-label">Carregando disputa…</span>
+                  </> : <>
+                    <span className="timer" aria-hidden="true">{timeLabel(remaining)}</span>
+                    <span className="timer-label">{status === 'closed' ? 'disputa encerrada' : status === 'urgent' ? 'últimos segundos da disputa' : 'para encerrar a disputa'}</span>
+                  </>}
+                </div>
+                <div className="progress-track" aria-hidden="true">{isAuctionLoading ? <div className="loading-skeleton progress-skeleton" /> : <div className="progress-fill" style={{ width: `${remaining / 60 * 100}%` }} />}</div>
+              </div>
+              <div className={`current-bid-panel ${latestBids[0]?.ownBid ? 'current-bid-panel-own' : ''}`} aria-live="polite" data-testid="row-bid-0">
+                {latestBids[0] ? <>
+                  <div className="current-bid-copy">
+                    <span className="current-bid-label" data-testid="status-current-bid">{status === 'closed' ? 'Lance vencedor' : 'Último lance'}</span>
+                    <strong className="current-bid-value" data-testid="value-bid-0">{money(latestBids[0].amount)}</strong>
+                    {latestBids[0].ownBid && <span className="bid-owner-status bid-owner-status-leading" data-testid="status-own-leading-bid">{status === 'closed' ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
+                  </div>
+                  <time dateTime={latestBids[0].dateTime} data-testid="time-bid-0">{latestBids[0].timestamp}</time>
+                </> : isAuctionLoading ? <>
+                  <span className="loading-skeleton bid-skeleton-amount" aria-hidden="true" />
+                  <span className="loading-skeleton bid-skeleton-time" aria-hidden="true" />
+                </> : <span className="current-bid-empty">Nenhum lance ainda</span>}
+              </div>
             </div>
-            <div className="progress-track" aria-hidden="true">{isAuctionLoading ? <div className="loading-skeleton progress-skeleton" /> : <div className="progress-fill" style={{ width: `${remaining / 60 * 100}%` }} />}</div>
             {(auctionQuery.isError || accountQuery.isError) && <p className="inline-error" role="alert">Não foi possível atualizar os dados agora. Tentando novamente…</p>}
           </section>
           <section aria-labelledby="bids-title">
-            <h2 id="bids-title" className="sr-only">Últimos lances</h2>
+            <h2 id="bids-title" className="section-head">Lances anteriores</h2>
             <ol className="bid-list" aria-live="polite" aria-busy={isAuctionLoading}>
-              {isAuctionLoading && Array.from({ length: 3 }, (_, index) => <li className="bid-row bid-skeleton" key={`loading-bid-${index}`} aria-hidden="true">
+              {isAuctionLoading && Array.from({ length: 2 }, (_, index) => <li className="bid-row bid-skeleton" key={`loading-bid-${index}`} aria-hidden="true">
                 <span className="loading-skeleton bid-skeleton-amount" />
                 <span className="loading-skeleton bid-skeleton-time" />
               </li>)}
-              {latestBids.map((bid, index) => <li key={`${bid.timestamp}-${index}-${bid.amount}`} className={`bid-row ${index === 0 ? 'current' : ''} ${index === 0 && bid.ownBid ? 'current-own' : ''} ${index > 0 && bid.ownBid ? 'own-history' : ''}`} data-testid={`row-bid-${index}`}>
-                {index === 0 ? <div className="bid-current">
-                  <small data-testid="status-current-bid">{status === 'closed' ? 'Lance vencedor' : 'Último lance'}</small>
-                  <strong data-testid={`value-bid-${index}`}>{money(bid.amount)}</strong>
-                  {bid.ownBid && <span className="bid-owner-status bid-owner-status-leading" data-testid="status-own-leading-bid">{status === 'closed' ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
-                </div> : <div className="bid-history-info">
+              {latestBids.slice(1, 3).map((bid, historyIndex) => {
+                const index = historyIndex + 1;
+                return <li key={`${bid.timestamp}-${index}-${bid.amount}`} className={`bid-row ${bid.ownBid ? 'own-history' : ''}`} data-testid={`row-bid-${index}`}>
+                  <div className="bid-history-info">
                   <strong data-testid={`value-bid-${index}`}>{money(bid.amount)}</strong>
                   {bid.ownBid && <span className="bid-owner-status bid-owner-status-superseded" data-testid={`status-own-bid-${index}`}>Seu lance foi superado</span>}
-                </div>}
-                <time dateTime={bid.dateTime} data-testid={`time-bid-${index}`}>{bid.timestamp}</time>
-              </li>)}
+                  </div>
+                  <time dateTime={bid.dateTime} data-testid={`time-bid-${index}`}>{bid.timestamp}</time>
+                </li>;
+              })}
             </ol>
           </section>
-          <details className="rules">
-            <summary data-testid="toggle-rules">Como funciona <ChevronDown size={19} /></summary>
-            <div className="rules-body"><p>Cada lance reinicia o cronômetro para 1 minuto.</p><p>Cada lance precisa superar o lance atual em pelo menos R$ 10,00.</p><p>Quando o tempo chega a zero, quem deu o último lance leva o prêmio, mais o bônus quando houver.</p><p>Se você ganhar, poderá solicitar o resgate separado dos créditos, para uma chave Pix em seu nome.</p></div>
-          </details>
         </div>
         <section className="dock" aria-label="Painel de lance">
-          <div className="dock-eyebrow">Seu próximo lance</div>
+          <div className="dock-heading">
+            <div className="dock-eyebrow">Seu próximo lance</div>
+            <button className="rules-link" type="button" data-testid="button-auction-rules" aria-haspopup="dialog" onClick={() => setSheet('rules')}>
+              <CircleHelp size={16} aria-hidden="true" />
+              Como funciona
+            </button>
+          </div>
           <div className="stepper">
             <button data-testid="button-bid-minus" aria-label="Diminuir lance" disabled={status === 'closed' || placeBidMutation.isPending || !auction} onClick={() => updateBid(Number.isFinite(amount) ? amount - (auction ? (auction.minimumBidCents - auction.currentBidCents) / 100 : 10) : minBid)}>-</button>
             <label className="amount-wrap"><span>R$</span><input data-testid="input-bid-amount" aria-label="Valor do lance em reais" inputMode="decimal" value={bidInput} disabled={status === 'closed' || placeBidMutation.isPending || !auction} onChange={(event) => { setBidInput(event.target.value.replace(/[^\d,.]/g, '')); setNotice(''); setBidNotice(''); }} /></label>
@@ -588,7 +606,7 @@ function Home() {
             {sheet === 'signin' ? <div className="signin-heading">
               <h2 id="dialog-title">Entre para dar lances</h2>
               {!googleChooserOpen && <p className="signin-description">Use seu e-mail para entrar ou criar sua conta.</p>}
-            </div> : <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Disputa compartilhada' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>}
+            </div> : <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Disputa compartilhada' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona a disputa' : 'Você ganhou!'}</h2>}
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div>}
           {sheet === 'account' && <div>
@@ -708,6 +726,26 @@ function Home() {
               <button className="danger-btn account-signout" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
               <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar disputa (todas as sessões)'}</button>
             </>}
+          </div>}
+          {sheet === 'rules' && <div className="rules-content" data-testid="content-auction-rules">
+            <ol className="rules-list">
+              <li>
+                <span className="rules-step-number" aria-hidden="true">01</span>
+                <div><h3>Dê um lance acima do atual</h3><p>O próximo lance precisa ser pelo menos R$ 10,00 maior que o lance atual.</p></div>
+              </li>
+              <li>
+                <span className="rules-step-number" aria-hidden="true">02</span>
+                <div><h3>O relógio volta para 1 minuto</h3><p>Cada lance aceito reinicia o cronômetro.</p></div>
+              </li>
+              <li>
+                <span className="rules-step-number" aria-hidden="true">03</span>
+                <div><h3>O último lance vence</h3><p>Se ninguém der outro lance antes de o tempo zerar, quem deu o último lance leva o prêmio e o bônus, quando houver.</p></div>
+              </li>
+              <li>
+                <span className="rules-step-number" aria-hidden="true">04</span>
+                <div><h3>O resgate é separado</h3><p>Se vencer, você poderá solicitar o resgate do prêmio por uma chave Pix em seu nome, separado dos créditos.</p></div>
+              </li>
+            </ol>
           </div>}
           {sheet === 'statement' && <div>
             <ul className="account-list" data-testid="list-transactions">
