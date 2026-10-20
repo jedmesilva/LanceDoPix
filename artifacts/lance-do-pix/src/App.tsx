@@ -531,8 +531,8 @@ function Home() {
                     <span className="current-bid-label" data-testid="status-current-bid">{status === 'closed' ? 'Lance vencedor' : 'Último lance'}</span>
                     <strong className="current-bid-value" data-testid="value-bid-0">{money(latestBids[0].amount)}</strong>
                     {latestBids[0].ownBid && <span className="bid-owner-status bid-owner-status-leading" data-testid="status-own-leading-bid">{status === 'closed' ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
+                    <time dateTime={latestBids[0].dateTime} data-testid="time-bid-0">{latestBids[0].timestamp}</time>
                   </div>
-                  <time dateTime={latestBids[0].dateTime} data-testid="time-bid-0">{latestBids[0].timestamp}</time>
                 </> : isAuctionLoading ? <>
                   <span className="loading-skeleton bid-skeleton-amount" aria-hidden="true" />
                   <span className="loading-skeleton bid-skeleton-time" aria-hidden="true" />
