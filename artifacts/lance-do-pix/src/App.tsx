@@ -488,11 +488,15 @@ function Home() {
                 <span className="loading-skeleton bid-skeleton-amount" />
                 <span className="loading-skeleton bid-skeleton-time" />
               </li>)}
-              {latestBids.map((bid, index) => <li key={`${bid.timestamp}-${index}-${bid.amount}`} className={`bid-row ${index === 0 ? 'current' : ''}`} data-testid={`row-bid-${index}`}>
+              {latestBids.map((bid, index) => <li key={`${bid.timestamp}-${index}-${bid.amount}`} className={`bid-row ${index === 0 ? 'current' : ''} ${index === 0 && bid.ownBid ? 'current-own' : ''} ${index > 0 && bid.ownBid ? 'own-history' : ''}`} data-testid={`row-bid-${index}`}>
                 {index === 0 ? <div className="bid-current">
-                  <small data-testid="status-current-bid">{status === 'closed' ? 'Lance vencedor' : 'Lance atual'}{bid.ownBid ? ' - seu lance' : ''}</small>
+                  <small data-testid="status-current-bid">{status === 'closed' ? 'Lance vencedor' : 'Último lance'}</small>
                   <strong data-testid={`value-bid-${index}`}>{money(bid.amount)}</strong>
-                </div> : <strong data-testid={`value-bid-${index}`}>{money(bid.amount)}</strong>}
+                  {bid.ownBid && <span className="bid-owner-status bid-owner-status-leading" data-testid="status-own-leading-bid">{status === 'closed' ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
+                </div> : <div className="bid-history-info">
+                  <strong data-testid={`value-bid-${index}`}>{money(bid.amount)}</strong>
+                  {bid.ownBid && <span className="bid-owner-status bid-owner-status-superseded" data-testid={`status-own-bid-${index}`}>Seu lance foi superado</span>}
+                </div>}
                 <time dateTime={bid.dateTime} data-testid={`time-bid-${index}`}>{bid.timestamp}</time>
               </li>)}
             </ol>
