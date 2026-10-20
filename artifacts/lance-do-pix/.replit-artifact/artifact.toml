@@ -1,7 +1,7 @@
 kind = "web"
 previewPath = "/"
 title = "Lance do Pix"
-description = "Leilão ao vivo mobile-first em que o último lance leva o prêmio. Acompanhe a disputa, registre lances, confira créditos e solicite resgate por Pix."
+description = "Plataforma mobile-first para uma disputa ao vivo: o último lance leva o prêmio. Acompanhe a disputa, dê lances, confira seus créditos e solicite o resgate do prêmio por Pix."
 version = "1.0.0"
 id = "artifacts/lance-do-pix"
 router = "path"

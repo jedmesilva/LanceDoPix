@@ -330,7 +330,7 @@ export async function placeDemoAuctionBid(input: {
     auction = await applyElapsedTime(client, auction, now);
 
     if (auction.status === "closed") {
-      throw new AuctionConflictError("Este leilão já foi encerrado.");
+      throw new AuctionConflictError("Esta disputa já foi encerrada.");
     }
     const minimumBidCents = auction.current_bid_cents + MIN_INCREMENT_CENTS;
     if (input.amountCents < minimumBidCents) {
@@ -385,7 +385,7 @@ export async function placeDemoAuctionBid(input: {
     );
     await client.query(
       `INSERT INTO account_transactions (account_id, label, amount_cents, created_at)
-       VALUES ($1, 'Lance no leilão', $2, $3)`,
+       VALUES ($1, 'Lance na disputa', $2, $3)`,
       [input.accountId, -input.amountCents, now],
     );
     const updatedResult = await client.query<AuctionRow>(

@@ -177,9 +177,9 @@ function Home() {
   }, [theme]);
 
   useEffect(() => {
-    if (remaining === 30) setAnnouncement('Restam 30 segundos para encerrar.');
-    if (remaining === 10) setAnnouncement('Últimos 10 segundos do leilão.');
-    if (remaining === 0) setAnnouncement('Leilão encerrado.');
+    if (remaining === 30) setAnnouncement('A disputa termina em 30 segundos.');
+    if (remaining === 10) setAnnouncement('A disputa termina em 10 segundos.');
+    if (remaining === 0) setAnnouncement('Disputa encerrada.');
   }, [remaining]);
 
   useEffect(() => {
@@ -281,7 +281,7 @@ function Home() {
   }
   function placeBid() {
     if (!signedIn) { openSignIn(); return; }
-    if (!auction) { setNotice('Conectando ao leilão. Tente novamente em instantes.'); return; }
+    if (!auction) { setNotice('Conectando à disputa. Tente novamente em instantes.'); return; }
     if (!amountValid) {
       setNotice('Informe um valor válido para o lance.');
       return;
@@ -382,7 +382,7 @@ function Home() {
     });
   }
   function resetDemo() {
-    const confirmed = window.confirm('Isso reinicia o leilão compartilhado para todas as sessões e zera esta conta. Continuar?');
+    const confirmed = window.confirm('Isso reinicia a disputa compartilhada para todas as sessões e zera esta conta. Continuar?');
     if (!confirmed) return;
     resetAuctionMutation.mutate(undefined, {
       onSuccess: (resetAuction) => {
@@ -397,11 +397,11 @@ function Home() {
         };
         pendingWinBidIdRef.current = null;
         shownWinIdsRef.current.clear();
-        setNotice('Leilão reiniciado.');
+        setNotice('Disputa reiniciada.');
         setSheet(null);
       },
       onError: (error) => {
-        setNotice(errorMessage(error, 'Não foi possível reiniciar o leilão.'));
+        setNotice(errorMessage(error, 'Não foi possível reiniciar a disputa.'));
       },
     });
   }
@@ -451,13 +451,13 @@ function Home() {
                 : <span>{prizeLabel}</span>}
             </p>
             {bonusAmount > 0 && <p className="bonus" data-testid="value-bonus">+ {money(bonusAmount)} de bônus</p>}
-            <div className="timer-row" role="timer" aria-label={isAuctionLoading ? 'Carregando dados do leilão' : `Tempo restante: ${timeLabel(remaining)}`} aria-busy={isAuctionLoading} data-testid="status-countdown">
+            <div className="timer-row" role="timer" aria-label={isAuctionLoading ? 'Carregando dados da disputa' : `Tempo restante: ${timeLabel(remaining)}`} aria-busy={isAuctionLoading} data-testid="status-countdown">
               {isAuctionLoading ? <>
                 <span className="timer loading-skeleton timer-skeleton" aria-hidden="true" />
-                <span className="timer-label">Carregando leilão…</span>
+                <span className="timer-label">Carregando disputa…</span>
               </> : <>
                 <span className="timer" aria-hidden="true">{timeLabel(remaining)}</span>
-                <span className="timer-label">{status === 'closed' ? 'leilão encerrado' : status === 'urgent' ? 'últimos segundos' : 'para encerrar'}</span>
+                <span className="timer-label">{status === 'closed' ? 'disputa encerrada' : status === 'urgent' ? 'últimos segundos da disputa' : 'para encerrar a disputa'}</span>
               </>}
             </div>
             <div className="progress-track" aria-hidden="true">{isAuctionLoading ? <div className="loading-skeleton progress-skeleton" /> : <div className="progress-fill" style={{ width: `${remaining / 60 * 100}%` }} />}</div>
@@ -493,9 +493,9 @@ function Home() {
           </div>
           <div className="quick-bids">{(auction?.suggestedBidIncrementsCents ?? []).map((valueCents) => <button key={valueCents} data-testid={`button-quick-${valueCents / 100}`} disabled={status === 'closed' || placeBidMutation.isPending || !auction} onClick={() => updateBid((Number.isFinite(amount) ? amount : minBid) + valueCents / 100)}>+{valueCents / 100}</button>)}</div>
           <p className={`hint ${notice.includes('insuficiente') || notice.includes('mínimo') ? 'error' : notice ? 'success' : ''}`} role="status" aria-live="polite" data-testid="status-bid-hint">
-            {status === 'closed' ? (isOwnLatestBid ? 'Você deu o lance vencedor.' : 'O leilão foi encerrado sem um lance seu.') : !account ? 'Conectando à sua conta…' : !signedIn ? 'Entre para participar. Acompanhar o leilão não exige conta.' : notice || (placeBidMutation.isPending ? 'Registrando lance no servidor…' : `Lance mínimo: ${money(minBid)} · créditos: ${money(credits)}`)}
+            {status === 'closed' ? (isOwnLatestBid ? 'Você deu o lance vencedor.' : 'A disputa foi encerrada sem um lance seu.') : !account ? 'Conectando à sua conta…' : !signedIn ? 'Entre para participar. Acompanhar a disputa não exige conta.' : notice || (placeBidMutation.isPending ? 'Registrando lance no servidor…' : `Lance mínimo: ${money(minBid)} · créditos: ${money(credits)}`)}
           </p>
-          {status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Leilão encerrado</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={openSignIn}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
+          {status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Disputa encerrada</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={openSignIn}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
         </section>
       </main>
       <div className="sr-only" aria-live="polite" aria-atomic="true" data-testid="status-announcement">{announcement}</div>
@@ -522,7 +522,7 @@ function Home() {
             {sheet === 'signin' ? <div className="signin-heading">
               <h2 id="dialog-title">Entre para dar lances</h2>
               {!googleChooserOpen && <p className="signin-description">Use seu e-mail para entrar ou criar sua conta.</p>}
-            </div> : <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Leilão compartilhado' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>}
+            </div> : <h2 id="dialog-title">{sheet === 'account' ? signedIn ? 'Minha conta' : 'Disputa compartilhada' : sheet === 'topup' ? 'Adicionar créditos' : sheet === 'withdrawal' ? withdrawalTitle : sheet === 'rules' ? 'Como funciona' : 'Você ganhou!'}</h2>}
             <button className="close-btn" data-testid="button-close-dialog" aria-label="Fechar" onClick={() => setSheet(null)}><X size={18} /></button>
           </div>}
           {sheet === 'account' && <div>
@@ -541,10 +541,10 @@ function Home() {
                   <ChevronRight size={18} aria-hidden="true" />
                 </button>
               </div> : <div className="account-guest">
-                <p className="muted">O leilão é compartilhado e fica visível para todos. Entre para dar lances e acessar sua conta.</p>
+                <p className="muted">A disputa é compartilhada e fica visível para todos. Entre para dar lances e acessar sua conta.</p>
                 <button className="primary-btn" data-testid="button-account-signin" onClick={openSignIn}>Entrar para dar lances</button>
               </div>}
-            <h3 className="account-section">{signedIn ? 'Meus leilões' : 'Leilão'}</h3>
+            <h3 className="account-section">{signedIn ? 'Minhas disputas' : 'Disputa'}</h3>
             <ul className="account-list account-auction-list" data-testid="list-auction-history">
               {showSharedAuction && auction && <li
                 className={`account-list-row account-list-auction-card ${hasParticipatedInCurrentAuction && !auction.isCurrentUserLastBid ? 'account-list-auction-card-outbid' : ''}`}
@@ -557,12 +557,12 @@ function Home() {
                     role="status"
                   >
                     {status === 'closed'
-                      ? 'Encerrado'
+                      ? 'Disputa encerrada'
                       : auction.isCurrentUserLastBid
                         ? 'Você está ganhando'
                         : hasParticipatedInCurrentAuction
                           ? 'Lance superado'
-                          : 'Em andamento'}
+                          : 'Disputa em andamento'}
                   </span>
                 </div>
                 <div className="account-list-prize-row">
@@ -635,19 +635,19 @@ function Home() {
                   </div>
                 </li>;
               })}
-              {signedIn && auction && !showSharedAuction && !account?.wins.length && <li className="account-empty">Você ainda não participou de nenhum leilão.</li>}
-              {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando o leilão compartilhado…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar o leilão agora.' : 'Nenhum leilão por aqui ainda.'}</li>}
+              {signedIn && auction && !showSharedAuction && !account?.wins.length && <li className="account-empty">Você ainda não participou de nenhuma disputa.</li>}
+              {!auction && !(signedIn && account?.wins.length) && <li className="account-empty">{accountQuery.isLoading || auctionQuery.isLoading ? 'Carregando a disputa compartilhada…' : accountQuery.isError || auctionQuery.isError ? 'Não foi possível carregar a disputa agora.' : 'Não há nenhuma disputa ativa no momento.'}</li>}
             </ul>
             {signedIn && <>
               <button className="danger-btn account-signout" data-testid="button-signout" onClick={signOut} disabled={signOutMutation.isPending}>Sair da conta</button>
-              <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar leilão (todas as sessões)'}</button>
+              <button className="reset" data-testid="button-reset-demo" onClick={resetDemo} disabled={resetAuctionMutation.isPending}>{resetAuctionMutation.isPending ? 'Reiniciando…' : 'Reiniciar disputa (todas as sessões)'}</button>
             </>}
           </div>}
           {sheet === 'statement' && <div>
             <ul className="account-list" data-testid="list-transactions">
               {account?.transactions.length
                 ? account.transactions.map((tx) => <li className="account-list-row" key={tx.id} data-testid={`row-transaction-${tx.id}`}>
-                  <span className="account-list-description">{tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span>
+                  <span className="account-list-description">{tx.label === 'Lance no leilão' ? 'Lance na disputa' : tx.label}<small>{new Date(String(tx.createdAt)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></span>
                   <span className={tx.amountCents > 0 ? 'account-amount-positive' : 'account-amount-negative'}>{tx.amountCents > 0 ? '+' : '−'}{money(Math.abs(tx.amountCents) / 100)}</span>
                 </li>)
                 : <li className="account-empty">Suas movimentações aparecerão aqui.</li>}
@@ -689,11 +689,11 @@ function Home() {
               <button className="primary-btn" data-testid="button-simulate-confirmation" style={{ marginTop: 14 }} onClick={confirmTopup} disabled={topUpMutation.isPending}>{topUpMutation.isPending ? 'Confirmando…' : 'Confirmar recarga'}</button>
               <button className="reset" data-testid="button-topup-back" onClick={() => setTopupStep(1)}>Voltar e escolher outro valor</button>
             </>}
-            {topupStep === 3 && <div style={{ textAlign: 'center' }}><div style={{ margin: '14px auto', width: 58, height: 58, borderRadius: 50, display: 'grid', placeItems: 'center', background: 'hsl(var(--primary))' }}><Check /></div><h3>Créditos adicionados</h3><p className="muted">{money(packageAmountCents / 100)} adicionados ao saldo.</p><button className="primary-btn" data-testid="button-topup-finish" onClick={() => setSheet(null)}>Voltar ao leilão</button></div>}
+            {topupStep === 3 && <div style={{ textAlign: 'center' }}><div style={{ margin: '14px auto', width: 58, height: 58, borderRadius: 50, display: 'grid', placeItems: 'center', background: 'hsl(var(--primary))' }}><Check /></div><h3>Créditos adicionados</h3><p className="muted">{money(packageAmountCents / 100)} adicionados ao saldo.</p><button className="primary-btn" data-testid="button-topup-finish" onClick={() => setSheet(null)}>Voltar à disputa</button></div>}
           </div>}
           {sheet === 'win' && <div>
             <div style={{ display: 'grid', placeItems: 'center', margin: '6px auto 12px', width: 58, height: 58, borderRadius: '50%', background: 'hsl(var(--primary)/.14)', color: 'hsl(var(--primary))' }}><Trophy /></div>
-            <p className="muted" data-testid="text-win-announcement">{winningBid ? `Seu lance de ${money(winningBid.amountCents / 100)} foi o último e levou este leilão.` : 'Seu lance foi o último e levou este leilão.'}</p>
+            <p className="muted" data-testid="text-win-announcement">{winningBid ? `Seu lance de ${money(winningBid.amountCents / 100)} foi o último e levou esta disputa.` : 'Seu lance foi o último e levou esta disputa.'}</p>
             {selectedWin ? <>
               <div className="summary"><div className="summary-row"><span>Prêmio</span><strong>{money(selectedWin.prizeCents / 100)}</strong></div>{selectedWin.bonusCents > 0 && <div className="summary-row"><span>Bônus</span><strong>{money(selectedWin.bonusCents / 100)}</strong></div>}<div className="summary-row total"><span>Total</span><strong>{money((selectedWin.prizeCents + selectedWin.bonusCents) / 100)}</strong></div></div>
               <button className="primary-btn" data-testid="button-open-win-withdrawal" onClick={() => openWithdrawal(selectedWin.id)}>Resgatar</button>

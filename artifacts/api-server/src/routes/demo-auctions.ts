@@ -21,7 +21,7 @@ router.get("/auctions/demo/current", async (req, res): Promise<void> => {
     res.json(GetDemoAuctionResponse.parse(auction));
   } catch (error) {
     req.log.error({ err: error }, "Failed to load auction");
-    res.status(500).json({ error: "Não foi possível carregar o leilão." });
+    res.status(500).json({ error: "Não foi possível carregar a disputa." });
   }
 });
 
@@ -54,7 +54,7 @@ router.post("/auctions/demo/reset", async (req, res): Promise<void> => {
     res.json(ResetDemoAuctionResponse.parse(auction));
   } catch (error) {
     req.log.error({ err: error }, "Failed to reset auction");
-    res.status(500).json({ error: "Não foi possível reiniciar o leilão." });
+    res.status(500).json({ error: "Não foi possível reiniciar a disputa." });
   }
 });
 
