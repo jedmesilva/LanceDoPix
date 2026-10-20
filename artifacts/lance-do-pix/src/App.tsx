@@ -119,6 +119,7 @@ function Home() {
   const [packageAmountCents, setPackageAmountCents] = useState(10_000);
   const [bidInput, setBidInput] = useState('');
   const [notice, setNotice] = useState('');
+  const [bidNotice, setBidNotice] = useState('');
   const [emailInput, setEmailInput] = useState('marina@email.com');
   const [googleChooserOpen, setGoogleChooserOpen] = useState(false);
   const [pixType, setPixType] = useState<PixKeyType>('CPF');
@@ -140,6 +141,19 @@ function Home() {
   const shownWinIdsRef = useRef(new Set<number>());
   const amount = Number(bidInput.replace(',', '.'));
   const amountValid = Number.isFinite(amount) && amount > 0;
+  const bidAmountCents = Math.round(amount * 100);
+  const bidMeetsMinimum = Boolean(auction && amountValid && bidAmountCents >= auction.minimumBidCents);
+  const hasInsufficientBalanceNotice = bidNotice.toLowerCase().includes('saldo insuficiente');
+  const bidExceedsCredits = Boolean(
+    signedIn && account && bidMeetsMinimum && bidAmountCents > account.creditsCents,
+  );
+  const needsTopup = Boolean(
+    signedIn && account && auction && status !== 'closed' &&
+    (hasInsufficientBalanceNotice || bidExceedsCredits),
+  );
+  const bidFeedback = bidExceedsCredits && !hasInsufficientBalanceNotice
+    ? 'Saldo insuficiente. Adicione créditos para continuar.'
+    : bidNotice;
   const auctionState = status === 'closed' ? 'closed' : status === 'urgent' ? 'urgent' : 'live';
   const prizeLabel = auction
     ? (auction.prizeCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -262,6 +276,7 @@ function Home() {
   function updateBid(value: number) {
     setBidInput((Math.round(value * 100) / 100).toFixed(2).replace('.', ','));
     setNotice('');
+    setBidNotice('');
   }
   function openTopup(initialAmountCents?: number) {
     const options = account?.topUpOptionsCents ?? [];
@@ -281,11 +296,12 @@ function Home() {
   }
   function placeBid() {
     if (!signedIn) { openSignIn(); return; }
-    if (!auction) { setNotice('Conectando à disputa. Tente novamente em instantes.'); return; }
+    if (!auction) { setBidNotice('Conectando à disputa. Tente novamente em instantes.'); return; }
     if (!amountValid) {
-      setNotice('Informe um valor válido para o lance.');
+      setBidNotice('Informe um valor válido para o lance.');
       return;
     }
+    setBidNotice('');
     placeBidMutation.mutate({
       data: {
         amountCents: Math.round(amount * 100),
@@ -295,15 +311,14 @@ function Home() {
         queryClient.setQueryData(getGetDemoAuctionQueryKey(), updatedAuction);
         void queryClient.invalidateQueries({ queryKey: getGetCurrentAccountQueryKey() });
         setBidInput((updatedAuction.minimumBidCents / 100).toFixed(2).replace('.', ','));
-        setNotice('Lance registrado. O cronômetro reiniciou.');
+        setBidNotice('');
         setAnnouncement(`Lance de ${money(amount)} registrado. Restam 60 segundos.`);
       },
       onError: (error) => {
         void queryClient.invalidateQueries({ queryKey: getGetDemoAuctionQueryKey() });
         void queryClient.invalidateQueries({ queryKey: getGetCurrentAccountQueryKey() });
         const message = errorMessage(error, 'Não foi possível registrar o lance.');
-        setNotice(message);
-        if (message.toLowerCase().includes('saldo insuficiente')) openTopup();
+        setBidNotice(message);
       },
     });
   }
@@ -314,6 +329,7 @@ function Home() {
       onSuccess: (updatedAccount) => {
         queryClient.setQueryData(getGetCurrentAccountQueryKey(), updatedAccount);
         setTopupStep(3);
+        setBidNotice('');
         setAnnouncement(`${money(packageAmountCents / 100)} em créditos adicionados.`);
       },
       onError: (error) => setNotice(errorMessage(error, 'Não foi possível adicionar créditos.')),
@@ -326,6 +342,7 @@ function Home() {
         setGoogleChooserOpen(false);
         setSheet(viaGoogleDemo ? 'account' : null);
         setNotice('');
+        setBidNotice('');
       },
       onError: (error) => setNotice(errorMessage(error, 'Informe um e-mail válido para continuar.')),
     });
@@ -390,6 +407,7 @@ function Home() {
         void queryClient.invalidateQueries({ queryKey: getGetCurrentAccountQueryKey() });
         setTheme('light');
         setBidInput((resetAuction.minimumBidCents / 100).toFixed(2).replace('.', ','));
+        setBidNotice('');
         setSelectedWinId(null);
         lastAuctionSnapshotRef.current = {
           winningBidId: resetAuction.bids.at(-1)?.id ?? null,
@@ -488,14 +506,15 @@ function Home() {
           <div className="dock-eyebrow">Seu próximo lance</div>
           <div className="stepper">
             <button data-testid="button-bid-minus" aria-label="Diminuir lance" disabled={status === 'closed' || placeBidMutation.isPending || !auction} onClick={() => updateBid(Number.isFinite(amount) ? amount - (auction ? (auction.minimumBidCents - auction.currentBidCents) / 100 : 10) : minBid)}>-</button>
-            <label className="amount-wrap"><span>R$</span><input data-testid="input-bid-amount" aria-label="Valor do lance em reais" inputMode="decimal" value={bidInput} disabled={status === 'closed' || placeBidMutation.isPending || !auction} onChange={(event) => { setBidInput(event.target.value.replace(/[^\d,.]/g, '')); setNotice(''); }} /></label>
+            <label className="amount-wrap"><span>R$</span><input data-testid="input-bid-amount" aria-label="Valor do lance em reais" inputMode="decimal" value={bidInput} disabled={status === 'closed' || placeBidMutation.isPending || !auction} onChange={(event) => { setBidInput(event.target.value.replace(/[^\d,.]/g, '')); setNotice(''); setBidNotice(''); }} /></label>
             <button data-testid="button-bid-plus" aria-label="Aumentar lance" disabled={status === 'closed' || placeBidMutation.isPending || !auction} onClick={() => updateBid((Number.isFinite(amount) ? amount : minBid) + (auction ? (auction.minimumBidCents - auction.currentBidCents) / 100 : 10))}>+</button>
           </div>
           <div className="quick-bids">{(auction?.suggestedBidIncrementsCents ?? []).map((valueCents) => <button key={valueCents} data-testid={`button-quick-${valueCents / 100}`} disabled={status === 'closed' || placeBidMutation.isPending || !auction} onClick={() => updateBid((Number.isFinite(amount) ? amount : minBid) + valueCents / 100)}>+{valueCents / 100}</button>)}</div>
-          <p className={`hint ${notice.includes('insuficiente') || notice.includes('mínimo') ? 'error' : notice ? 'success' : ''}`} role="status" aria-live="polite" data-testid="status-bid-hint">
-            {status === 'closed' ? (isOwnLatestBid ? 'Você deu o lance vencedor.' : 'A disputa foi encerrada sem um lance seu.') : !account ? 'Conectando à sua conta…' : !signedIn ? 'Entre para participar. Acompanhar a disputa não exige conta.' : notice || (placeBidMutation.isPending ? 'Registrando lance no servidor…' : `Lance mínimo: ${money(minBid)}`)}
-          </p>
-          {status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Disputa encerrada</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={openSignIn}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={placeBid} disabled={!amountValid || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
+          {auction && status !== 'closed' && <p className="hint" role="status" aria-live="polite" data-testid="status-bid-hint">
+            Lance mínimo: {money(minBid)}
+          </p>}
+          {status === 'closed' ? <button className="primary-btn" data-testid="button-auction-closed" disabled>Disputa encerrada</button> : !signedIn ? <button className="primary-btn" data-testid="button-signin-bid" onClick={openSignIn}>Entrar para dar lance</button> : <button className="primary-btn" data-testid="button-place-bid" onClick={needsTopup ? () => openTopup() : placeBid} disabled={(!amountValid && !needsTopup) || placeBidMutation.isPending || !auction || !account}>{placeBidMutation.isPending ? 'Registrando…' : needsTopup ? 'Adicionar créditos' : `Dar lance · ${Number.isFinite(amount) ? money(amount) : money(minBid)}`}</button>}
+          {status !== 'closed' && signedIn && bidFeedback && <p className="hint error" role="alert" aria-live="assertive" data-testid="status-bid-feedback">{bidFeedback}</p>}
         </section>
       </main>
       <div className="sr-only" aria-live="polite" aria-atomic="true" data-testid="status-announcement">{announcement}</div>
