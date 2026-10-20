@@ -61,7 +61,17 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .lead { margin: 5px 0 0; color: hsl(var(--muted-foreground)); font-size: 15px; }
 .prize { display: flex; align-items: baseline; gap: 7px; margin: 20px 0 0; font-size: clamp(64px, 12vw, 104px); font-weight: 800; letter-spacing: -.075em; line-height: .98; font-variant-numeric: tabular-nums; }
 .prize small { font-size: .33em; color: hsl(var(--muted-foreground)); letter-spacing: -.02em; }
-.bonus { font-size: clamp(18px, 5vw, 22px); color: hsl(var(--primary)); font-weight: 800; line-height: 1.25; font-variant-numeric: tabular-nums; margin: 10px 0 0; }
+.bonus-slot { display: grid; grid-template-rows: 0fr; margin-top: 0; opacity: 0; transform: translateY(-5px); transition: grid-template-rows .3s ease, margin-top .3s ease, opacity .22s ease, transform .3s ease; }
+.bonus-slot.is-visible { grid-template-rows: 1fr; margin-top: 10px; opacity: 1; transform: translateY(0); }
+.bonus-slot-inner { min-height: 0; overflow: hidden; }
+.bonus { font-size: clamp(18px, 5vw, 22px); color: hsl(var(--primary)); font-weight: 800; line-height: 1.25; font-variant-numeric: tabular-nums; margin: 0; }
+.bonus-value { display: inline-block; transform-origin: center; animation: bonus-arrival 820ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes bonus-arrival {
+  0% { transform: scale(.98); text-shadow: 0 0 0 hsl(var(--primary) / 0); filter: brightness(1); }
+  22% { transform: scale(1.045); text-shadow: 0 0 15px hsl(var(--primary) / .34); filter: brightness(1.12); }
+  58% { transform: scale(1.012); text-shadow: 0 0 7px hsl(var(--primary) / .18); filter: brightness(1.04); }
+  100% { transform: scale(1); text-shadow: 0 0 0 hsl(var(--primary) / 0); filter: brightness(1); }
+}
 .timer-row { margin-top: 30px; display: flex; align-items: baseline; gap: 13px; }
 .timer { font: 500 32px var(--app-font-mono); letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
 .timer-label { font-size: 15px; color: hsl(var(--muted-foreground)); }
@@ -290,4 +300,8 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .sign-in { min-height: 38px; padding: 0 10px; font-size: 14px; }
 }
 @media (max-height: 680px) and (max-width: 767px) { .auction-content { gap: 20px; } .prize { font-size: 58px; } .timer-row { margin-top: 20px; } .dock { padding-top: 12px; } .quick-bids { display: none; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .bonus-slot { transform: none; }
+  .bonus-value { animation: none; }
+}

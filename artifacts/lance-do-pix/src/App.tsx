@@ -51,6 +51,49 @@ function GoogleMark() {
   </svg>;
 }
 
+function AnimatedBonus({ amount }: { amount: number }) {
+  const [displayAmount, setDisplayAmount] = useState(0);
+  const displayAmountRef = useRef(0);
+
+  useEffect(() => {
+    const fromAmount = displayAmountRef.current;
+    if (amount <= fromAmount) {
+      displayAmountRef.current = amount;
+      setDisplayAmount(amount);
+      return;
+    }
+
+    const duration = fromAmount === 0 ? 720 : 560;
+    const difference = amount - fromAmount;
+    let frame = 0;
+    let startTime = 0;
+
+    const animate = (now: number) => {
+      if (startTime === 0) startTime = now;
+      const progress = Math.min((now - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const nextAmount = fromAmount + difference * easedProgress;
+      displayAmountRef.current = nextAmount;
+      setDisplayAmount(nextAmount);
+
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [amount]);
+
+  return (
+    <div className={`bonus-slot ${amount > 0 ? 'is-visible' : ''}`} aria-hidden={amount <= 0}>
+      <div className="bonus-slot-inner">
+        {amount > 0 && <p className="bonus" data-testid="value-bonus">
+          <span key={amount} className="bonus-value">+ {money(displayAmount)}</span> de bônus
+        </p>}
+      </div>
+    </div>
+  );
+}
+
 const DEMO_GOOGLE_EMAIL = 'marina@email.com';
 
 function Home() {
@@ -468,7 +511,7 @@ function Home() {
                 ? <span className="loading-skeleton prize-skeleton" role="status" data-testid="status-prize-loading"><span className="sr-only">Carregando valor do prêmio</span></span>
                 : <span>{prizeLabel}</span>}
             </p>
-            {bonusAmount > 0 && <p className="bonus" data-testid="value-bonus">+ {money(bonusAmount)} de bônus</p>}
+            <AnimatedBonus amount={bonusAmount} />
             <div className="timer-row" role="timer" aria-label={isAuctionLoading ? 'Carregando dados da disputa' : `Tempo restante: ${timeLabel(remaining)}`} aria-busy={isAuctionLoading} data-testid="status-countdown">
               {isAuctionLoading ? <>
                 <span className="timer loading-skeleton timer-skeleton" aria-hidden="true" />
