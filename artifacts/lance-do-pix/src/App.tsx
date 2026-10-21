@@ -525,21 +525,26 @@ function Home() {
                 </div>
                 <div className="progress-track" aria-hidden="true">{isAuctionLoading ? <div className="loading-skeleton progress-skeleton" /> : <div className="progress-fill" style={{ width: `${remaining / 60 * 100}%` }} />}</div>
               </div>
-              <div className={`current-bid-panel ${latestBids[0]?.ownBid ? 'current-bid-panel-own' : ''}`} aria-live="polite" data-testid="row-bid-0">
-                {latestBids[0] ? <>
-                  <div className="current-bid-copy">
-                    <span className="current-bid-label" data-testid="status-current-bid">{status === 'closed' ? 'Lance vencedor' : 'Último lance'}</span>
-                    <strong className="current-bid-value" data-testid="value-bid-0">{money(latestBids[0].amount)}</strong>
-                    {latestBids[0].ownBid && <span className="bid-owner-status bid-owner-status-leading" data-testid="status-own-leading-bid">{status === 'closed' ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
-                    <time dateTime={latestBids[0].dateTime} data-testid="time-bid-0">{latestBids[0].timestamp}</time>
-                  </div>
-                </> : isAuctionLoading ? <>
-                  <span className="loading-skeleton bid-skeleton-amount" aria-hidden="true" />
-                  <span className="loading-skeleton bid-skeleton-time" aria-hidden="true" />
-                </> : <span className="current-bid-empty">Nenhum lance ainda</span>}
-              </div>
             </div>
             {(auctionQuery.isError || accountQuery.isError) && <p className="inline-error" role="alert">Não foi possível atualizar os dados agora. Tentando novamente…</p>}
+          </section>
+          <section aria-labelledby="current-bid-title">
+            <h2 id="current-bid-title" className="section-head section-head-current" data-testid="status-current-bid">
+              {latestBids[0] && status === 'closed' ? 'Lance vencedor' : 'Último lance'}
+            </h2>
+            <ol className="bid-list" aria-live="polite" aria-busy={isAuctionLoading}>
+              {isAuctionLoading && <li className="bid-row bid-skeleton" aria-hidden="true">
+                <span className="loading-skeleton bid-skeleton-amount" />
+                <span className="loading-skeleton bid-skeleton-time" />
+              </li>}
+              {latestBids[0] ? <li className={`bid-row current ${latestBids[0].ownBid ? 'own-history' : ''}`} aria-current="true" aria-live="polite" data-testid="row-bid-0">
+                <div className="bid-history-info">
+                  <strong data-testid="value-bid-0">{money(latestBids[0].amount)}</strong>
+                  {latestBids[0].ownBid && <span className="bid-owner-status bid-owner-status-leading" data-testid="status-own-leading-bid">{status === 'closed' ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
+                </div>
+                <time dateTime={latestBids[0].dateTime} data-testid="time-bid-0">{latestBids[0].timestamp}</time>
+              </li> : !isAuctionLoading && <li className="bid-empty">Nenhum lance ainda</li>}
+            </ol>
           </section>
           <section aria-labelledby="bids-title">
             <h2 id="bids-title" className="section-head">Lances anteriores</h2>
