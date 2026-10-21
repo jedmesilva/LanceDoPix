@@ -528,41 +528,48 @@ function Home() {
             </div>
             {(auctionQuery.isError || accountQuery.isError) && <p className="inline-error" role="alert">Não foi possível atualizar os dados agora. Tentando novamente…</p>}
           </section>
-          <section aria-labelledby="current-bid-title">
-            <h2 id="current-bid-title" className="section-head section-head-current" data-testid="status-current-bid">
-              {latestBids[0] && status === 'closed' ? 'Lance vencedor' : 'Último lance'}
-            </h2>
-            <ol className="bid-list" aria-live="polite" aria-busy={isAuctionLoading}>
-              {isAuctionLoading && <li className="bid-row bid-skeleton" aria-hidden="true">
-                <span className="loading-skeleton bid-skeleton-amount" />
-                <span className="loading-skeleton bid-skeleton-time" />
-              </li>}
-              {latestBids[0] ? <li className={`bid-row current ${latestBids[0].ownBid ? 'own-history' : ''}`} aria-current="true" aria-live="polite" data-testid="row-bid-0">
-                <div className="bid-history-info">
-                  <strong data-testid="value-bid-0">{money(latestBids[0].amount)}</strong>
-                  {latestBids[0].ownBid && <span className="bid-owner-status bid-owner-status-leading" data-testid="status-own-leading-bid">{status === 'closed' ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
+          <section className="bid-history-section" aria-labelledby="bids-title" aria-busy={isAuctionLoading}>
+            <h2 id="bids-title" className="bid-section-title">Lances</h2>
+            <ol className="bid-timeline" aria-live="polite" aria-busy={isAuctionLoading}>
+              {isAuctionLoading && latestBids.length === 0 && Array.from({ length: 3 }, (_, index) => <li className="bid-timeline-row bid-timeline-row-skeleton" key={`loading-bid-${index}`} aria-hidden="true">
+                <span className={`bid-timeline-marker ${index === 0 ? 'is-current' : ''}`} />
+                <div className="bid-timeline-skeleton-content">
+                  {index === 0 && <div className="bid-timeline-top">
+                    <span className="loading-skeleton bid-skeleton-tag" />
+                    <span className="loading-skeleton bid-skeleton-time" />
+                  </div>}
+                  <span className={`loading-skeleton bid-skeleton-amount ${index === 0 ? 'is-current' : ''}`} />
                 </div>
-                <time dateTime={latestBids[0].dateTime} data-testid="time-bid-0">{latestBids[0].timestamp}</time>
-              </li> : !isAuctionLoading && <li className="bid-empty">Nenhum lance ainda</li>}
-            </ol>
-          </section>
-          <section aria-labelledby="bids-title">
-            <h2 id="bids-title" className="section-head">Lances anteriores</h2>
-            <ol className="bid-list" aria-live="polite" aria-busy={isAuctionLoading}>
-              {isAuctionLoading && Array.from({ length: 2 }, (_, index) => <li className="bid-row bid-skeleton" key={`loading-bid-${index}`} aria-hidden="true">
-                <span className="loading-skeleton bid-skeleton-amount" />
-                <span className="loading-skeleton bid-skeleton-time" />
               </li>)}
-              {latestBids.slice(1, 3).map((bid, historyIndex) => {
-                const index = historyIndex + 1;
-                return <li key={`${bid.timestamp}-${index}-${bid.amount}`} className={`bid-row ${bid.ownBid ? 'own-history' : ''}`} data-testid={`row-bid-${index}`}>
-                  <div className="bid-history-info">
-                  <strong data-testid={`value-bid-${index}`}>{money(bid.amount)}</strong>
-                  {bid.ownBid && <span className="bid-owner-status bid-owner-status-superseded" data-testid={`status-own-bid-${index}`}>Seu lance foi superado</span>}
-                  </div>
-                  <time dateTime={bid.dateTime} data-testid={`time-bid-${index}`}>{bid.timestamp}</time>
+              {latestBids.slice(0, 3).map((bid, index) => {
+                const isLatest = index === 0;
+                const isWinner = isLatest && status === 'closed';
+                return <li
+                  key={`${bid.timestamp}-${index}-${bid.amount}`}
+                  className={`bid-timeline-row ${isLatest ? 'is-current' : ''}`}
+                  aria-current={isLatest ? 'true' : undefined}
+                  data-testid={`row-bid-${index}`}
+                >
+                  <span className={`bid-timeline-marker ${isLatest ? 'is-current' : ''} ${isWinner ? 'is-winner' : ''}`} aria-hidden="true">
+                    {isWinner && <Check size={14} strokeWidth={3.4} />}
+                  </span>
+                  {isLatest ? <div className="bid-timeline-current">
+                    <div className="bid-timeline-top">
+                      <span className="bid-timeline-tag" data-testid="status-current-bid">{isWinner ? 'Lance vencedor' : 'Último lance'}</span>
+                      <time className="bid-timeline-time" dateTime={bid.dateTime} data-testid="time-bid-0">{bid.timestamp}</time>
+                    </div>
+                    <strong className="bid-timeline-amount is-current" data-testid="value-bid-0">{money(bid.amount)}</strong>
+                    {bid.ownBid && <span className="bid-timeline-status is-leading" data-testid="status-own-leading-bid">{isWinner ? 'Você venceu a disputa' : 'Você está ganhando a disputa'}</span>}
+                  </div> : <div className="bid-timeline-history">
+                    <div className="bid-timeline-history-info">
+                      <strong className="bid-timeline-amount" data-testid={`value-bid-${index}`}>{money(bid.amount)}</strong>
+                      {bid.ownBid && <span className="bid-timeline-status" data-testid={`status-own-bid-${index}`}>Seu lance foi superado</span>}
+                    </div>
+                    <time className="bid-timeline-time" dateTime={bid.dateTime} data-testid={`time-bid-${index}`}>{bid.timestamp}</time>
+                  </div>}
                 </li>;
               })}
+              {!isAuctionLoading && latestBids.length === 0 && <li className="bid-timeline-empty">Nenhum lance ainda</li>}
             </ol>
           </section>
         </div>

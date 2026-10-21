@@ -86,25 +86,31 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .urgent .timer-label:before, .urgent .progress-fill { background: hsl(var(--destructive)); }
 .closed .timer { color: hsl(var(--muted-foreground)); }
 .closed .timer-label:before { animation: none; background: hsl(var(--muted-foreground)); }
-.section-head { font-size: 14px; color: hsl(var(--muted-foreground)); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 14px; }
-.section-head-current { color: hsl(var(--primary)); font-weight: 800; }
-.section-head-current::before { display: inline-block; width: 7px; height: 7px; margin: 0 8px 1px 0; border-radius: 50%; background: currentColor; content: ""; }
-.bid-list { list-style: none; margin: 0; padding: 0; }
-.bid-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 1px solid hsl(var(--border)); padding: 14px 0; font-variant-numeric: tabular-nums; }
-.bid-row strong { font-size: 16px; font-weight: 600; color: hsl(var(--muted-foreground)); }
-.bid-row time { font-size: 14px; color: hsl(var(--muted-foreground)); }
-.bid-row.current { border-top-color: hsl(var(--primary) / .45); }
-.bid-row.current strong { font-size: 26px; font-weight: 800; letter-spacing: -.03em; color: hsl(var(--foreground)); }
-.bid-row.own-history { align-items: flex-start; }
-.bid-row.own-history time { padding-top: 2px; }
-.bid-history-info { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
-.bid-owner-status { display: block; font-size: 12px; line-height: 1.3; }
-.bid-owner-status-leading { color: hsl(var(--primary)); font-weight: 700; }
-.bid-owner-status-superseded { color: hsl(var(--muted-foreground)); font-weight: 600; }
-.bid-skeleton { align-items: center; min-height: 46px; }
-.bid-skeleton-amount { width: 96px; height: 18px; border-radius: 5px; }
+.bid-history-section { width: 100%; max-width: 480px; }
+.bid-section-title { font-size: 13px; letter-spacing: .12em; color: hsl(var(--muted-foreground)); font-weight: 700; text-transform: uppercase; margin: 0 0 14px; }
+.bid-timeline { list-style: none; margin: 0; padding: 0; }
+.bid-timeline-row { position: relative; display: flex; align-items: flex-start; gap: 16px; padding-bottom: 24px; font-variant-numeric: tabular-nums; }
+.bid-timeline-row:not(:last-child)::before { content: ""; position: absolute; left: 11px; top: 12px; bottom: 0; width: 2px; background: hsl(var(--border)); }
+.bid-timeline-row:last-child { padding-bottom: 0; }
+.bid-timeline-marker { position: relative; z-index: 1; flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: hsl(var(--background)); color: hsl(var(--primary-foreground)); }
+.bid-timeline-marker:not(.is-current)::after { content: ""; width: 10px; height: 10px; border: 2px solid hsl(var(--muted-foreground)); border-radius: 50%; }
+.bid-timeline-marker.is-current:not(.is-winner)::after { content: ""; width: 10px; height: 10px; border: 2px solid hsl(var(--primary)); border-radius: 50%; }
+.bid-timeline-marker.is-winner { background: hsl(var(--primary)); }
+.bid-timeline-current, .bid-timeline-history, .bid-timeline-skeleton-content { flex: 1; min-width: 0; }
+.bid-timeline-top, .bid-timeline-history { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.bid-timeline-tag { color: hsl(var(--primary)); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.bid-timeline-time { flex: none; color: hsl(var(--muted-foreground)); font-size: 13px; white-space: nowrap; }
+.bid-timeline-amount { display: block; margin: 0; color: hsl(var(--muted-foreground)); font-size: 17px; font-weight: 700; line-height: 1.25; }
+.bid-timeline-amount.is-current { margin: 8px 0 6px; color: hsl(var(--foreground)); font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.bid-timeline-history-info { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 2px; }
+.bid-timeline-status { display: block; color: hsl(var(--muted-foreground)); font-size: 13px; font-weight: 600; line-height: 1.3; }
+.bid-timeline-status.is-leading { color: hsl(var(--primary)); font-size: 15px; font-weight: 700; }
+.bid-timeline-row-skeleton .bid-timeline-top { align-items: center; min-height: 24px; }
+.bid-skeleton-tag { width: 112px; height: 12px; border-radius: 4px; }
+.bid-skeleton-amount { width: 92px; height: 18px; margin-top: 2px; border-radius: 5px; }
+.bid-skeleton-amount.is-current { width: 164px; height: 34px; margin-top: 8px; }
 .bid-skeleton-time { width: 52px; height: 14px; border-radius: 4px; }
-.bid-empty { border-top: 1px solid hsl(var(--border)); padding: 14px 0; color: hsl(var(--muted-foreground)); font-size: 14px; }
+.bid-timeline-empty { padding: 4px 0 0 40px; color: hsl(var(--muted-foreground)); font-size: 14px; }
 .auction-live-status { display: flex; flex-direction: column; gap: 0; margin-top: 20px; }
 .auction-timer-panel { min-width: 0; min-height: 0; border: 0; border-radius: 0; background: transparent; padding: 0; }
 .auction-timer-panel { display: flex; flex-direction: column; justify-content: flex-start; }
@@ -302,9 +308,8 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
   .auction-live-status { gap: 18px; margin-top: 16px; }
   .timer { font-size: clamp(24px, 7vw, 29px); }
   .timer-label { font-size: 11px; }
-  .bid-row strong { font-size: 15px; }
-  .bid-row.current strong { font-size: 24px; }
-  .bid-row time { font-size: 13px; }
+  .bid-timeline-amount.is-current { font-size: 32px; }
+  .bid-timeline-time { font-size: 12px; }
   .dock-heading { margin-bottom: 10px; }
   .rules-link { min-height: 38px; }
   .head-actions { gap: 7px; }
@@ -313,9 +318,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 @media (max-width: 380px) {
   .top-inner { padding: 0 12px; }
   .auction-live-status { gap: 16px; }
-  .bid-row strong { font-size: 14px; }
-  .bid-row.current strong { font-size: 22px; }
-  .bid-row time { font-size: 12px; }
+  .bid-timeline-amount.is-current { font-size: 29px; }
   .head-actions { gap: 5px; }
   .sign-in { min-height: 38px; padding: 0 10px; font-size: 14px; }
 }
