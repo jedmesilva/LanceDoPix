@@ -28,6 +28,15 @@ Leilão online demonstrativo em que o último lance antes do fim do cronômetro 
 - Database schema: `lib/db/src/schema`
 - Generated client and validation: `lib/api-client-react` and `lib/api-zod`
 
+## Continuous auction rounds
+
+- The shared round configuration is stored in `demo_auction_settings` under `id = 'lance-do-pix-demo'`.
+- `next_prize_cents`, `next_duration_seconds`, and `next_initial_bid_cents` configure the next round; money values are in centavos. Each round copies these values when it is scheduled.
+- When a round ends, the next one is scheduled to start 60 seconds later. Set `enabled = false` before the current round ends to leave the platform in the no-auction state instead.
+- To change the defaults for the next round, update the settings row in the development database. For example:
+  `UPDATE demo_auction_settings SET next_prize_cents = 125000, next_duration_seconds = 120, next_initial_bid_cents = 5000 WHERE id = 'lance-do-pix-demo';`
+- The configured initial bid is recorded as the opening bid. The next accepted bid must meet the existing minimum increment.
+
 ## Architecture decisions
 
 - The shared demonstration auction, bid history, countdown, and bonus are authoritative in PostgreSQL and served by the API.

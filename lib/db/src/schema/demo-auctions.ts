@@ -1,8 +1,8 @@
 import { createInsertSchema } from "drizzle-zod";
-import { index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 
-export type DemoAuctionStatus = "live" | "closed";
+export type DemoAuctionStatus = "scheduled" | "live" | "closed";
 export type DemoAuctionBidStatus =
   | "leading"
   | "outbid"
@@ -14,6 +14,9 @@ export const demoAuctionsTable = pgTable("demo_auctions", {
   id: text("id").primaryKey(),
   roundId: text("round_id").notNull().default("legacy"),
   prizeCents: integer("prize_cents").notNull(),
+  durationSeconds: integer("duration_seconds").notNull().default(60),
+  initialBidCents: integer("initial_bid_cents").notNull().default(10_000),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull().defaultNow(),
   currentBidCents: integer("current_bid_cents").notNull(),
   bonusCents: integer("bonus_cents").notNull().default(0),
   periodBidCents: integer("period_bid_cents").notNull().default(0),
@@ -41,6 +44,15 @@ export const demoAuctionBidsTable = pgTable("demo_auction_bids", {
   index("demo_auction_bids_bidder_id_id_idx").on(table.bidderId, table.id),
 ]);
 
+export const demoAuctionSettingsTable = pgTable("demo_auction_settings", {
+  id: text("id").primaryKey(),
+  nextPrizeCents: integer("next_prize_cents").notNull().default(100_000),
+  nextDurationSeconds: integer("next_duration_seconds").notNull().default(60),
+  nextInitialBidCents: integer("next_initial_bid_cents").notNull().default(10_000),
+  enabled: boolean("enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
 export const insertDemoAuctionSchema = createInsertSchema(demoAuctionsTable).omit({
   createdAt: true,
   updatedAt: true,
@@ -54,3 +66,7 @@ export const insertDemoAuctionBidSchema = createInsertSchema(demoAuctionBidsTabl
 });
 export type InsertDemoAuctionBid = z.infer<typeof insertDemoAuctionBidSchema>;
 export type DemoAuctionBid = typeof demoAuctionBidsTable.$inferSelect;
+
+export const insertDemoAuctionSettingsSchema = createInsertSchema(demoAuctionSettingsTable);
+export type InsertDemoAuctionSettings = z.infer<typeof insertDemoAuctionSettingsSchema>;
+export type DemoAuctionSettings = typeof demoAuctionSettingsTable.$inferSelect;

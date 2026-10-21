@@ -138,16 +138,21 @@ export const DemoAuctionStatus = {
   live: 'live',
   urgent: 'urgent',
   closed: 'closed',
+  scheduled: 'scheduled',
+  idle: 'idle',
 } as const;
 
 export interface DemoAuction {
   id: string;
   prizeCents: number;
+  durationSeconds: number;
+  initialBidCents: number;
   currentBidCents: number;
   minimumBidCents: number;
   suggestedBidIncrementsCents: number[];
   bonusCents: number;
   remainingSeconds: number;
+  scheduledRemainingSeconds: number;
   status: DemoAuctionStatus;
   isCurrentUserLastBid: boolean;
   /** @nullable */

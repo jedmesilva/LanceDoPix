@@ -11,11 +11,14 @@ import type { DemoAuctionStatus } from './demoAuctionStatus';
 export interface DemoAuction {
   id: string;
   prizeCents: number;
+  durationSeconds: number;
+  initialBidCents: number;
   currentBidCents: number;
   minimumBidCents: number;
   suggestedBidIncrementsCents: number[];
   bonusCents: number;
   remainingSeconds: number;
+  scheduledRemainingSeconds: number;
   status: DemoAuctionStatus;
   isCurrentUserLastBid: boolean;
   /** @nullable */

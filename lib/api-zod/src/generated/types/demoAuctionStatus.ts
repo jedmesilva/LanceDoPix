@@ -13,4 +13,6 @@ export const DemoAuctionStatus = {
   live: 'live',
   urgent: 'urgent',
   closed: 'closed',
+  scheduled: 'scheduled',
+  idle: 'idle',
 } as const;

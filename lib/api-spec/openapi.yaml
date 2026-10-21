@@ -510,6 +510,10 @@ components:
           type: string
         prizeCents:
           type: integer
+        durationSeconds:
+          type: integer
+        initialBidCents:
+          type: integer
         currentBidCents:
           type: integer
         minimumBidCents:
@@ -522,9 +526,11 @@ components:
           type: integer
         remainingSeconds:
           type: integer
+        scheduledRemainingSeconds:
+          type: integer
         status:
           type: string
-          enum: [live, urgent, closed]
+          enum: [live, urgent, closed, scheduled, idle]
         isCurrentUserLastBid:
           type: boolean
         currentUserLastBidAmountCents:
@@ -536,11 +542,14 @@ components:
       required:
         - id
         - prizeCents
+        - durationSeconds
+        - initialBidCents
         - currentBidCents
         - minimumBidCents
         - suggestedBidIncrementsCents
         - bonusCents
         - remainingSeconds
+        - scheduledRemainingSeconds
         - status
         - isCurrentUserLastBid
         - currentUserLastBidAmountCents

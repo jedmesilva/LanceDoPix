@@ -116,6 +116,13 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px 
 .auction-timer-panel { display: flex; flex-direction: column; justify-content: flex-start; }
 .auction-live-status .timer-row { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 4px; }
 .auction-timer-panel .progress-track { margin-top: 12px; }
+.scheduled-start-panel { margin-top: 20px; padding: 18px 0 4px; border-top: 1px solid hsl(var(--border)); }
+.scheduled-start-copy { margin-bottom: 8px; color: hsl(var(--muted-foreground)); font-size: 13px; font-weight: 600; }
+.scheduled-start-timer { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.scheduled-start-timer .timer { color: hsl(var(--primary)); }
+.scheduled-start-timer .timer-label:before { background: hsl(var(--primary)); }
+.empty-auction-state { margin: 20px 0 0; padding: 18px 0; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 15px; line-height: 1.5; }
+.dock-state-message { margin: 0; color: hsl(var(--muted-foreground)); font-size: 14px; line-height: 1.5; }
 .dock-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 13px; }
 .dock { position: sticky; top: 88px; border: 1px solid hsl(var(--border)); border-radius: 24px; padding: 24px; background: hsl(var(--card)); box-shadow: 0 18px 50px hsl(163 25% 10% / .05); }
 .dock-eyebrow { color: hsl(var(--muted-foreground)); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
